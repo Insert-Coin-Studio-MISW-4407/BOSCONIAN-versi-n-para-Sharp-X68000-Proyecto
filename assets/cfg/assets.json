@@ -1,0 +1,10 @@
+{
+    "images": [
+        "assets/img/titulo.png",
+        "assets/img/naves.png"
+    ],
+    "sounds": [],
+    "fonts": [
+        { "path": "assets/fnt/PressStart2P.ttf", "size": 8 }
+    ]
+}

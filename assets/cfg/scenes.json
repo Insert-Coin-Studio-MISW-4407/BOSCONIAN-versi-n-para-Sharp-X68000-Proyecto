@@ -18,10 +18,17 @@
                   "pos": { "x": 128, "y": 188 }, "align": "center" }
             ],
             "actions": {
+                "GAME_START": "LEVEL_01",
                 "MENU_INSTRUCTIONS": "INSTRUCTIONS",
                 "MENU_CREDITS": "CREDITS",
                 "GAME_BACK": "QUIT"
             }
+        },
+        "LEVEL_01": {
+            "type": "PLAY",
+            "level": "level_01.json",
+            "music": "assets/mus/starshooterv2.1.ogg",
+            "back_scene": "MENU"
         },
         "INSTRUCTIONS": {
             "type": "TEXT",

@@ -1,0 +1,77 @@
+{
+    "initial_scene": "MENU",
+    "scenes": {
+        "MENU": {
+            "type": "TEXT",
+            "music": "assets/mus/night_tune3.ogg",
+            "images": [
+                { "path": "assets/img/titulo.png", "pos": { "x": 128, "y": 24 }, "align": "center" }
+            ],
+            "texts": [
+                { "text": "PUSH START", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 128, "y": 120 }, "align": "center", "blink": 0.5 },
+                { "text": "I INSTRUCCIONES", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],
+                  "pos": { "x": 128, "y": 144 }, "align": "center" },
+                { "text": "C CREDITOS", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],
+                  "pos": { "x": 128, "y": 156 }, "align": "center" },
+                { "text": "INSERT COIN STUDIO", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 0],
+                  "pos": { "x": 128, "y": 188 }, "align": "center" }
+            ],
+            "actions": {
+                "MENU_INSTRUCTIONS": "INSTRUCTIONS",
+                "MENU_CREDITS": "CREDITS",
+                "GAME_BACK": "QUIT"
+            }
+        },
+        "INSTRUCTIONS": {
+            "type": "TEXT",
+            "texts": [
+                { "text": "INSTRUCCIONES", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 0],
+                  "pos": { "x": 128, "y": 16 }, "align": "center" },
+                { "text": "FLECHAS  MOVER", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 24, "y": 48 } },
+                { "text": "Z        DISPARAR", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 24, "y": 64 } },
+                { "text": "X        ESPECIAL", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 24, "y": 80 } },
+                { "text": "P        PAUSA", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 24, "y": 96 } },
+                { "text": "ESC      VOLVER", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 24, "y": 112 } },
+                { "text": "DESTRUYE TODAS", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],
+                  "pos": { "x": 128, "y": 144 }, "align": "center" },
+                { "text": "LAS ESTACIONES", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],
+                  "pos": { "x": 128, "y": 156 }, "align": "center" },
+                { "text": "ESC PARA VOLVER", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [120, 120, 120],
+                  "pos": { "x": 128, "y": 188 }, "align": "center", "blink": 0.5 }
+            ],
+            "actions": { "GAME_BACK": "MENU", "GAME_START": "MENU" }
+        },
+        "CREDITS": {
+            "type": "TEXT",
+            "texts": [
+                { "text": "CREDITOS", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 0],
+                  "pos": { "x": 128, "y": 16 }, "align": "center" },
+                { "text": "INSERT COIN STUDIO", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 128, "y": 40 }, "align": "center" },
+                { "text": "MISW-4407", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [120, 120, 255],
+                  "pos": { "x": 128, "y": 52 }, "align": "center" },
+                { "text": "ARTE", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],
+                  "pos": { "x": 128, "y": 80 }, "align": "center" },
+                { "text": "DIANA PACHECO CC-BY", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 128, "y": 92 }, "align": "center" },
+                { "text": "MUSICA", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],
+                  "pos": { "x": 128, "y": 112 }, "align": "center" },
+                { "text": "CENTURION OF WAR CC0", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 128, "y": 124 }, "align": "center" },
+                { "text": "FUENTE", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],
+                  "pos": { "x": 128, "y": 144 }, "align": "center" },
+                { "text": "CODEMAN38 OFL", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
+                  "pos": { "x": 128, "y": 156 }, "align": "center" },
+                { "text": "ESC PARA VOLVER", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [120, 120, 120],
+                  "pos": { "x": 128, "y": 188 }, "align": "center", "blink": 0.5 }
+            ],
+            "actions": { "GAME_BACK": "MENU", "GAME_START": "MENU" }
+        }
+    }
+}

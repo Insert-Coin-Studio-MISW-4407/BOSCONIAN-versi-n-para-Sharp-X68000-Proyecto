@@ -24,6 +24,12 @@ python main.py
 | Volver / salir | ESC |
 | Instrucciones / creditos (menu) | I / C |
 
+### Depuracion
+
+| Tecla | Efecto |
+|---|---|
+| F1 | Muestra las cajas de colision |
+
 Todas las teclas se configuran en `assets/cfg/input.json`.
 
 ## Resolucion

@@ -1,25 +1,18 @@
 {
-    "star_colors": [
-        {
-            "r": 213,
-            "g": 0,
-            "b": 0
-        },
-        {
-            "r": 118,
-            "g": 255,
-            "b": 3
-        },
-        {
-            "r": 65,
-            "g": 105,
-            "b": 225
-        }
-    ],
-    "stars_number": 100,
-    "stars_parallax_factor": 1.0,
-    "stars_blink_speed": {
-        "min": 0.25,
-        "max": 0.5
+    "size": { "w": 1536, "h": 1536 },
+    "stars": {
+        "colors": [
+            { "r": 213, "g": 0, "b": 0 },
+            { "r": 118, "g": 255, "b": 3 },
+            { "r": 65, "g": 105, "b": 225 },
+            { "r": 255, "g": 255, "b": 255 },
+            { "r": 255, "g": 255, "b": 0 }
+        ],
+        "layers": [
+            { "count": 40, "parallax": 0.25 },
+            { "count": 30, "parallax": 0.5 },
+            { "count": 20, "parallax": 0.75 }
+        ],
+        "blink_interval": { "min": 0.25, "max": 0.5 }
     }
 }

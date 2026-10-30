@@ -10,6 +10,7 @@
         { "name": "GAME_PAUSE",     "device": "KEYBOARD", "keys": ["p"] },
         { "name": "GAME_BACK",      "device": "KEYBOARD", "keys": ["escape"] },
         { "name": "MENU_INSTRUCTIONS", "device": "KEYBOARD", "keys": ["i"] },
-        { "name": "MENU_CREDITS",   "device": "KEYBOARD", "keys": ["c"] }
+        { "name": "MENU_CREDITS",   "device": "KEYBOARD", "keys": ["c"] },
+        { "name": "DEBUG_COLLIDERS", "device": "KEYBOARD", "keys": ["f1"] }
     ]
 }

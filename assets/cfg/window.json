@@ -2,5 +2,9 @@
     "title": "COSMONIAN - Insert Coin Studio",
     "size": { "w": 256, "h": 208 },
     "bg_color": { "r": 0, "g": 0, "b": 0 },
-    "framerate": 60
+    "framerate": 60,
+    "layout": {
+        "view":  { "x": 0,   "y": 0, "w": 192, "h": 208 },
+        "panel": { "x": 192, "y": 0, "w": 64,  "h": 208, "color": [16, 16, 48] }
+    }
 }

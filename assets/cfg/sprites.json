@@ -1,0 +1,7 @@
+{
+    "_comentario": "Recortes de la hoja de sprites. rect = [x, y, ancho, alto]. Si hay frames, el rect es la tira completa.",
+    "sheet": "assets/img/naves.png",
+    "sprites": {
+        "player": { "rect": [124, 7, 15, 18] }
+    }
+}

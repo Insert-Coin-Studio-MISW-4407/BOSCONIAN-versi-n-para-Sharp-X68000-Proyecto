@@ -1,18 +1,26 @@
 """Escena de juego: el mundo toroidal, la camara, el fondo de estrellas y la nave."""
 import pygame
 
-from src.create.prefab_creator import (color, create_camera, create_player,
-                                       create_starfield, create_text, vec)
+from src.create.prefab_creator import (color, create_camera, create_player, create_player_shot,
+                                       create_special_shot, create_starfield, create_text, vec)
 from src.ecs.components.c_camera import CCamera
+from src.ecs.components.c_heading import CHeading
 from src.ecs.components.c_input_command import CInputCommand, CommandPhase
+from src.ecs.components.c_ship_motion import CShipMotion
 from src.ecs.components.c_surface import CSurface
 from src.ecs.components.c_transform import CTransform
-from src.ecs.components.c_velocity import CVelocity
+from src.ecs.components.c_weapon import CWeapon
+from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
+from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
+from src.ecs.systems.s_bullet_offscreen import system_bullet_offscreen
 from src.ecs.systems.s_camera import system_camera
 from src.ecs.systems.s_movement import system_movement
+from src.ecs.systems.s_player_sprite import system_player_sprite
 from src.ecs.systems.s_rendering import system_rendering
 from src.ecs.systems.s_rendering_stars import system_rendering_stars
+from src.ecs.systems.s_ship_motion import system_ship_motion
 from src.ecs.systems.s_stars import system_stars
+from src.ecs.systems.s_weapon_cooldown import system_weapon_cooldown
 from src.ecs.systems.s_world_wrap import system_world_wrap
 from src.engine.scenes.scene import Scene
 from src.engine.world_math import world_to_screen
@@ -48,8 +56,11 @@ class PlayScene(Scene):
         self._player_entity = create_player(self.ecs_world, engine.player_cfg,
                                             engine.sprites_cfg,
                                             vec(self._level_cfg["player_spawn"]))
-        self._player_c_v = self.ecs_world.component_for_entity(self._player_entity,
-                                                               CVelocity)
+        self._player_c_t = self.ecs_world.component_for_entity(self._player_entity, CTransform)
+        self._player_c_s = self.ecs_world.component_for_entity(self._player_entity, CSurface)
+        self._player_c_h = self.ecs_world.component_for_entity(self._player_entity, CHeading)
+        self._player_c_m = self.ecs_world.component_for_entity(self._player_entity, CShipMotion)
+        self._player_c_w = self.ecs_world.component_for_entity(self._player_entity, CWeapon)
         # La camara arranca ya centrada en la nave, sin un salto en el primer frame
         system_camera(self.ecs_world, self._player_entity, self._world_size)
         self._c_camera.delta.update(0, 0)
@@ -57,7 +68,7 @@ class PlayScene(Scene):
     # ----------------------------------------------------------- acciones (Command)
     def do_action(self, c_input: CInputCommand) -> None:
         if c_input.name in _MOVE_ACTIONS:
-            self._update_player_velocity()
+            self._update_input_direction()
         elif c_input.phase != CommandPhase.START:
             return
         elif c_input.name == "GAME_PAUSE":
@@ -66,8 +77,13 @@ class PlayScene(Scene):
             self.switch_scene(self.cfg["back_scene"])
         elif c_input.name == "DEBUG_COLLIDERS":
             self._debug = not self._debug
+        elif c_input.name == "PLAYER_FIRE":
+            self._fire()
+        elif c_input.name == "PLAYER_SPECIAL":
+            self._fire_special()
 
-    def _update_player_velocity(self) -> None:
+    def _update_input_direction(self) -> None:
+        """Direccion que piden las flechas (8 sentidos). El sistema de movimiento la usa."""
         # Una accion esta activa si cualquiera de sus teclas esta presionada
         active = {c.name for _, c in self.ecs_world.get_component(CInputCommand)
                   if c.phase == CommandPhase.START}
@@ -76,7 +92,30 @@ class PlayScene(Scene):
             direction += _MOVE_ACTIONS[name]
         if direction.length_squared() > 0:
             direction.scale_to_length(1)
-        self._player_c_v.vel = direction * self.engine.player_cfg["speed"]
+        self._player_c_m.input_dir = direction
+
+    def _ship_center(self) -> pygame.Vector2:
+        return self._player_c_t.pos + pygame.Vector2(self._player_c_s.area.size) / 2
+
+    def _fire(self) -> None:
+        """Disparo simple: dos balas, salvo que ya haya demasiadas vivas."""
+        if self._paused:
+            return
+        alive = (len(self.ecs_world.get_component(CTagPlayerBullet))
+                 - len(self.ecs_world.get_component(CTagSpecialBullet)))
+        if alive + 2 <= self._player_c_w.max_bullets:
+            create_player_shot(self.ecs_world, self.engine.sprites_cfg, self.engine.player_cfg,
+                               self._ship_center(), self._player_c_h.direction)
+
+    def _fire_special(self) -> None:
+        """Disparo especial: solo si el nivel lo da y no esta recargando."""
+        if self._paused or self._level_cfg.get("special_ability") != "SPECIAL_SHOT":
+            return
+        if self._player_c_w.special_time_left > 0:
+            return
+        create_special_shot(self.ecs_world, self.engine.sprites_cfg, self.engine.player_cfg,
+                            self._ship_center(), self._player_c_h.direction)
+        self._player_c_w.special_time_left = self._player_c_w.special_cooldown
 
     def _toggle_pause(self) -> None:
         self._paused = not self._paused
@@ -94,9 +133,13 @@ class PlayScene(Scene):
     def do_update(self, delta_time: float) -> None:
         if self._paused:
             return
+        system_ship_motion(self.ecs_world, delta_time)
+        system_player_sprite(self.ecs_world)
         system_movement(self.ecs_world, delta_time)
         system_world_wrap(self.ecs_world, self._world_size)
         system_camera(self.ecs_world, self._player_entity, self._world_size)
+        system_bullet_offscreen(self.ecs_world, self._c_camera, self._world_size)
+        system_weapon_cooldown(self.ecs_world, delta_time)
         system_stars(self.ecs_world, self._c_camera, delta_time)
 
     # ------------------------------------------------------------------------ dibujo

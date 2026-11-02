@@ -10,17 +10,25 @@ import pygame
 class TextureService:
     def __init__(self) -> None:
         self._textures: dict[str, pygame.Surface] = {}
-        self._regions: dict[tuple[str, tuple[int, int, int, int]], pygame.Surface] = {}
+        self._regions: dict[tuple, pygame.Surface] = {}
 
     def get(self, path: str) -> pygame.Surface:
         if path not in self._textures:
             self._textures[path] = pygame.image.load(path).convert_alpha()
         return self._textures[path]
 
-    def get_region(self, path: str, rect: list[int]) -> pygame.Surface:
-        key = (path, tuple(rect))
+    def get_region(self, path: str, rect: list[int], flip_x: bool = False,
+                   angle: float = 0) -> pygame.Surface:
+        """Recorte del atlas, opcionalmente en espejo horizontal y/o girado `angle` grados
+        (antihorario). Cada variante se crea una sola vez."""
+        key = (path, tuple(rect), flip_x, angle)
         if key not in self._regions:
-            self._regions[key] = self.get(path).subsurface(pygame.Rect(rect))
+            region = self.get(path).subsurface(pygame.Rect(rect))
+            if flip_x:
+                region = pygame.transform.flip(region, True, False)
+            if angle:
+                region = pygame.transform.rotate(region, angle)
+            self._regions[key] = region
         return self._regions[key]
 
     def clear(self) -> None:

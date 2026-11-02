@@ -60,6 +60,12 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `CInputCommand` | nombre de accion, tecla/boton, fase (patron Command) |
 | `CTagUI` | marca un sprite dibujado en coordenadas de pantalla |
 | `CTagPlayer` | marca la nave del jugador |
+| `CTagPlayerBullet` | marca las balas del jugador |
+| `CTagSpecialBullet` | marca las balas del disparo especial (no cuentan para el limite del simple) |
+| `CHeading` | hacia donde apunta la nave (8 sentidos, vector unitario) |
+| `CShipMotion` | velocidad maxima, aceleracion, velocidad de crucero y direccion pedida por las flechas |
+| `CWeapon` | velocidad y limite de balas, desplazamiento de la boca, recarga y apertura del especial |
+| `CRotatingSprite` | recorte del atlas que se gira segun `CHeading` |
 | `CCamera` | esquina de la vista en el mundo, rectangulo de pantalla, delta del frame |
 | `CStar` | posicion en la vista, color, factor de parallax, temporizador de parpadeo |
 
@@ -74,6 +80,10 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `system_movement` | integra la velocidad en la posicion |
 | `system_world_wrap` | envuelve las posiciones en ambos ejes |
 | `system_camera` | centra la camara en la nave y calcula su delta |
+| `system_ship_motion` | movimiento con aceleracion: la velocidad persigue a la deseada (arrancar, frenar y girar toman tiempo) |
+| `system_player_sprite` | gira el sprite de la nave hacia donde apunta, sin mover su centro |
+| `system_bullet_offscreen` | borra las balas que salen por completo de la pantalla (respeta la costura del mundo) |
+| `system_weapon_cooldown` | descuenta la recarga del disparo especial |
 | `system_stars` | parallax y parpadeo de las estrellas |
 | `system_rendering_stars` | dibuja las estrellas visibles |
 | `system_rendering` | dibuja sprites de mundo recortados a la vista |
@@ -82,7 +92,7 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 
 | Servicio | Recurso |
 |---|---|
-| `TextureService` | imagenes y recortes del atlas, cargados una sola vez |
+| `TextureService` | imagenes y recortes del atlas (con espejo y giro opcionales), cargados una sola vez |
 | `SoundService` | efectos; tolera archivos ausentes |
 | `MusicService` | musica en streaming; no reinicia la pista si ya suena |
 | `FontService` | TTF o fuentes de mapa de bits |
@@ -98,5 +108,5 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `scenes.json` | escena inicial y definicion de cada escena |
 | `world.json` | tamano del mundo y capas, colores y parpadeo de las estrellas |
 | `sprites.json` | recortes de la hoja de sprites del curso |
-| `player.json` | parametros de la nave |
-| `level_XX.json` | contenido de cada nivel |
+| `player.json` | movimiento (`max_speed`, `acceleration`, `cruise_speed`) y disparos (`fire`) de la nave |
+| `level_XX.json` | contenido de cada nivel, incluida su habilidad especial (`special_ability`) |

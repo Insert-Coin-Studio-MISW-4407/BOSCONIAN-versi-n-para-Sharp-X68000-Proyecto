@@ -2,7 +2,7 @@
 import pygame
 
 from src.create.prefab_creator import (color, create_camera, create_player, create_player_shot,
-                                       create_special_shot, create_starfield, create_text, vec)
+                                       create_starfield, create_text, create_triple_shot, vec)
 from src.ecs.components.c_camera import CCamera
 from src.ecs.components.c_heading import CHeading
 from src.ecs.components.c_input_command import CInputCommand, CommandPhase
@@ -20,7 +20,6 @@ from src.ecs.systems.s_rendering import system_rendering
 from src.ecs.systems.s_rendering_stars import system_rendering_stars
 from src.ecs.systems.s_ship_motion import system_ship_motion
 from src.ecs.systems.s_stars import system_stars
-from src.ecs.systems.s_weapon_cooldown import system_weapon_cooldown
 from src.ecs.systems.s_world_wrap import system_world_wrap
 from src.engine.scenes.scene import Scene
 from src.engine.world_math import world_to_screen
@@ -41,6 +40,7 @@ class PlayScene(Scene):
         self._paused = False
         self._pause_text: int | None = None
         self._debug = False
+        self._main_weapon_is_triple = False
 
     # --------------------------------------------------------------------- creacion
     def do_create(self) -> None:
@@ -79,8 +79,10 @@ class PlayScene(Scene):
             self._debug = not self._debug
         elif c_input.name == "PLAYER_FIRE":
             self._fire()
-        elif c_input.name == "PLAYER_SPECIAL":
-            self._fire_special()
+        elif c_input.name == "PLAYER_TRIPLE_CANNON":
+            self._fire_triple_cannon()
+        elif c_input.name == "PLAYER_TOGGLE_MAIN_WEAPON":
+            self._main_weapon_is_triple = not self._main_weapon_is_triple
 
     def _update_input_direction(self) -> None:
         """Direccion que piden las flechas (8 sentidos). El sistema de movimiento la usa."""
@@ -98,8 +100,11 @@ class PlayScene(Scene):
         return self._player_c_t.pos + pygame.Vector2(self._player_c_s.area.size) / 2
 
     def _fire(self) -> None:
-        """Disparo simple: dos balas, salvo que ya haya demasiadas vivas."""
+        """Disparo principal, alternable entre normal y triple para pruebas."""
         if self._paused:
+            return
+        if self._main_weapon_is_triple:
+            self._fire_triple_cannon(force=True)
             return
         alive = (len(self.ecs_world.get_component(CTagPlayerBullet))
                  - len(self.ecs_world.get_component(CTagSpecialBullet)))
@@ -107,15 +112,12 @@ class PlayScene(Scene):
             create_player_shot(self.ecs_world, self.engine.sprites_cfg, self.engine.player_cfg,
                                self._ship_center(), self._player_c_h.direction)
 
-    def _fire_special(self) -> None:
-        """Disparo especial: solo si el nivel lo da y no esta recargando."""
-        if self._paused or self._level_cfg.get("special_ability") != "SPECIAL_SHOT":
+    def _fire_triple_cannon(self, force: bool = False) -> None:
+        """Cañon triple desbloqueado por nivel, con atajo de prueba opcional."""
+        if self._paused or (not force and not self._level_cfg.get("triple_cannon", False)):
             return
-        if self._player_c_w.special_time_left > 0:
-            return
-        create_special_shot(self.ecs_world, self.engine.sprites_cfg, self.engine.player_cfg,
-                            self._ship_center(), self._player_c_h.direction)
-        self._player_c_w.special_time_left = self._player_c_w.special_cooldown
+        create_triple_shot(self.ecs_world, self.engine.sprites_cfg, self.engine.player_cfg,
+                           self._ship_center(), self._player_c_h.direction)
 
     def _toggle_pause(self) -> None:
         self._paused = not self._paused
@@ -139,7 +141,6 @@ class PlayScene(Scene):
         system_world_wrap(self.ecs_world, self._world_size)
         system_camera(self.ecs_world, self._player_entity, self._world_size)
         system_bullet_offscreen(self.ecs_world, self._c_camera, self._world_size)
-        system_weapon_cooldown(self.ecs_world, delta_time)
         system_stars(self.ecs_world, self._c_camera, delta_time)
 
     # ------------------------------------------------------------------------ dibujo

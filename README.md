@@ -19,7 +19,8 @@ python main.py
 |---|---|
 | Mover | Flechas |
 | Disparar / Start | Z (o Enter en menus) |
-| Especial | X |
+| Cañon triple (si esta desbloqueado) | X |
+| Alternar disparo principal normal/triple (pruebas) | U |
 | Pausa | P |
 | Volver / salir | ESC |
 | Instrucciones / creditos (menu) | I / C |

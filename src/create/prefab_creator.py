@@ -135,10 +135,10 @@ def create_player_shot(world: esper.World, sprites_cfg: dict, player_cfg: dict,
     create_bullet(world, sprites_cfg, player_cfg, center, -heading)
 
 
-def create_special_shot(world: esper.World, sprites_cfg: dict, player_cfg: dict,
-                        center: pygame.Vector2, heading: pygame.Vector2) -> None:
-    """Disparo especial: cuatro balas, tres al frente (abanico) y una atras."""
-    spread = player_cfg["fire"]["special_spread"]
+def create_triple_shot(world: esper.World, sprites_cfg: dict, player_cfg: dict,
+                       center: pygame.Vector2, heading: pygame.Vector2) -> None:
+    """Cañon triple: tres balas al frente en abanico y una bala trasera."""
+    spread = player_cfg["fire"]["triple_spread"]
     for angle in (-spread, 0, spread):
         create_bullet(world, sprites_cfg, player_cfg, center, heading.rotate(angle), special=True)
     create_bullet(world, sprites_cfg, player_cfg, center, -heading, special=True)

@@ -109,4 +109,4 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `world.json` | tamano del mundo y capas, colores y parpadeo de las estrellas |
 | `sprites.json` | recortes de la hoja de sprites del curso |
 | `player.json` | movimiento (`max_speed`, `acceleration`, `cruise_speed`) y disparos (`fire`) de la nave |
-| `level_XX.json` | contenido de cada nivel, incluida su habilidad especial (`special_ability`) |
+| `level_XX.json` | contenido de cada nivel, incluido el desbloqueo del cañon triple (`triple_cannon`) |

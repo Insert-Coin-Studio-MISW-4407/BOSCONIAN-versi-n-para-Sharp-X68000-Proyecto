@@ -19,10 +19,17 @@ python main.py
 |---|---|
 | Mover | Flechas |
 | Disparar / Start | Z (o Enter en menus) |
-| Especial | X |
+| Cañon triple (si esta desbloqueado) | X |
+| Alternar disparo principal normal/triple (pruebas) | U |
 | Pausa | P |
 | Volver / salir | ESC |
 | Instrucciones / creditos (menu) | I / C |
+
+### Depuracion
+
+| Tecla | Efecto |
+|---|---|
+| F1 | Muestra las cajas de colision |
 
 Todas las teclas se configuran en `assets/cfg/input.json`.
 

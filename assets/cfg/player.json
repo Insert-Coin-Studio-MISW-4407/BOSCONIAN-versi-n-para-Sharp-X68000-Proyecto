@@ -1,0 +1,17 @@
+{
+    "sprite": "player",
+    "max_speed": 90,
+    "acceleration": 180,
+    "cruise_speed": 90,
+    "fire": {
+        "bullet_speed": 240,
+        "max_bullets": 4,
+        "muzzle_offset": 10,
+        "triple_spread": 20,
+        "bullet_sprites": {
+            "vertical": "bullet_vertical",
+            "horizontal": "bullet_horizontal",
+            "diagonal": "bullet_diagonal"
+        }
+    }
+}

@@ -4,6 +4,7 @@ import json
 
 import pygame
 
+from src.engine.scenes.play_scene import PlayScene
 from src.engine.scenes.text_scene import TextScene
 from src.engine.service_locator import preload_assets
 
@@ -13,6 +14,7 @@ _CFG = "assets/cfg/"
 # Cada PR que agregue un tipo de escena nuevo lo registra aqui.
 _SCENE_TYPES = {
     "TEXT": TextScene,
+    "PLAY": PlayScene,
 }
 
 
@@ -47,6 +49,9 @@ class GameEngine:
         self.audio_cfg = self.load_cfg("audio.json")
         self.input_cfg = self.load_cfg("input.json")
         self.scenes_cfg = self.load_cfg("scenes.json")
+        self.sprites_cfg = self.load_cfg("sprites.json")
+        self.world_cfg = self.load_cfg("world.json")
+        self.player_cfg = self.load_cfg("player.json")
 
     @staticmethod
     def load_cfg(name: str) -> dict:

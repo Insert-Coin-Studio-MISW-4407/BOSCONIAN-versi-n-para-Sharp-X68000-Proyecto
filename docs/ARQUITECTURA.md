@@ -68,6 +68,11 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `CRotatingSprite` | recorte del atlas que se gira segun `CHeading` |
 | `CCamera` | esquina de la vista en el mundo, rectangulo de pantalla, delta del frame |
 | `CStar` | posicion en la vista, color, factor de parallax, temporizador de parpadeo |
+| `CGameStats` | puntuacion, record, vidas, ronda y ruta de persistencia del record |
+| `CStageTimer` | limite y tiempo restante de la ronda; indica si expiro |
+| `CAlertState` | condicion GREEN/YELLOW/RED y enclavamiento de RED; punto futuro para reporte espia |
+| `CTagBase` | identifica bases rastreables en el minimapa (sin prefabs en esta entrega) |
+| `CTagFormation` | identifica formaciones rastreables en el minimapa (sin prefabs en esta entrega) |
 
 ## Sistemas
 
@@ -87,6 +92,12 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `system_stars` | parallax y parpadeo de las estrellas |
 | `system_rendering_stars` | dibuja las estrellas visibles |
 | `system_rendering` | dibuja sprites de mundo recortados a la vista |
+| `system_rendering_panel` | dibuja puntaje, record, vidas, temporizador, alerta y minimapa en el panel derecho |
+| `system_stage_timer` | descuenta el limite global de la ronda, tambien cuando no hay enemigos |
+| `system_alert` | prioriza y enclava RED; admite YELLOW mediante deteccion futura de enemigos |
+| `system_report_spy` | punto de integracion para activar RED cuando una futura nave espia reporte |
+| `system_add_score` / `system_lose_life` | actualiza puntuacion/record y vidas |
+| `system_start_next_round` | reinicia temporizador/alerta y cambia el numero de ronda |
 
 ## Servicios (Service Locator)
 
@@ -109,4 +120,6 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `world.json` | tamano del mundo y capas, colores y parpadeo de las estrellas |
 | `sprites.json` | recortes de la hoja de sprites del curso |
 | `player.json` | movimiento (`max_speed`, `acceleration`, `cruise_speed`) y disparos (`fire`) de la nave |
+| `window.json > layout.panel.hud` | tipografia y paleta de colores del panel/minimapa |
+| `level_XX.json` | incluye `starting_lives`, `round_number`, `alert_time_limit_seconds` y `high_score_path` |
 | `level_XX.json` | contenido de cada nivel, incluido el desbloqueo del cañon triple (`triple_cannon`) |

@@ -1,8 +1,10 @@
 """Escena de juego: el mundo toroidal, la camara, el fondo de estrellas y la nave."""
 import pygame
 
-from src.create.prefab_creator import (color, create_camera, create_player, create_player_shot,
-                                       create_starfield, create_text, create_triple_shot, vec)
+from src.create.prefab_creator import (create_alert_state, create_camera,
+                                       create_game_stats, create_player, create_player_shot,
+                                       create_stage_timer, create_starfield, create_text,
+                                       create_triple_shot, sprite_texture, vec)
 from src.ecs.components.c_camera import CCamera
 from src.ecs.components.c_heading import CHeading
 from src.ecs.components.c_input_command import CInputCommand, CommandPhase
@@ -12,13 +14,17 @@ from src.ecs.components.c_transform import CTransform
 from src.ecs.components.c_weapon import CWeapon
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
+from src.ecs.systems.s_alert import system_alert
 from src.ecs.systems.s_bullet_offscreen import system_bullet_offscreen
 from src.ecs.systems.s_camera import system_camera
 from src.ecs.systems.s_movement import system_movement
 from src.ecs.systems.s_player_sprite import system_player_sprite
+from src.ecs.systems.s_game_stats import load_high_score
 from src.ecs.systems.s_rendering import system_rendering
+from src.ecs.systems.s_rendering_panel import system_rendering_panel
 from src.ecs.systems.s_rendering_stars import system_rendering_stars
 from src.ecs.systems.s_ship_motion import system_ship_motion
+from src.ecs.systems.s_stage_timer import system_stage_timer
 from src.ecs.systems.s_stars import system_stars
 from src.ecs.systems.s_world_wrap import system_world_wrap
 from src.engine.scenes.scene import Scene
@@ -61,6 +67,25 @@ class PlayScene(Scene):
         self._player_c_h = self.ecs_world.component_for_entity(self._player_entity, CHeading)
         self._player_c_m = self.ecs_world.component_for_entity(self._player_entity, CShipMotion)
         self._player_c_w = self.ecs_world.component_for_entity(self._player_entity, CWeapon)
+
+        # Estado no jugable: puntaje/record, vidas, alerta y limite temporal global.
+        self._high_score_path = self._level_cfg.get(
+            "high_score_path", "save/high_score.json")
+        self._game_stats_entity = create_game_stats(
+            self.ecs_world,
+            load_high_score(self._high_score_path),
+            self._level_cfg.get("starting_lives", 3),
+            self._level_cfg.get("round_number", 1),
+            self._high_score_path,
+        )
+        create_stage_timer(
+            self.ecs_world, self._level_cfg.get("alert_time_limit_seconds", 120))
+        create_alert_state(self.ecs_world)
+
+        # Sprite fijo, sin rotacion, para representar cada vida en el panel.
+        player_texture = sprite_texture(engine.sprites_cfg, engine.player_cfg["sprite"])
+        self._panel_ship_texture = pygame.transform.scale(player_texture, (12, 14))
+
         # La camara arranca ya centrada en la nave, sin un salto en el primer frame
         system_camera(self.ecs_world, self._player_entity, self._world_size)
         self._c_camera.delta.update(0, 0)
@@ -143,13 +168,19 @@ class PlayScene(Scene):
         system_bullet_offscreen(self.ecs_world, self._c_camera, self._world_size)
         system_stars(self.ecs_world, self._c_camera, delta_time)
 
+        # El temporizador es global e independiente de cualquier enemigo.
+        system_stage_timer(self.ecs_world, delta_time)
+        # No hay enemigos/espia implementados todavia; el parametro permite integrarlos despues.
+        system_alert(self.ecs_world, enemy_detected=False)
+
     # ------------------------------------------------------------------------ dibujo
     def do_draw(self, screen: pygame.Surface) -> None:
         system_rendering_stars(self.ecs_world, screen, self._c_camera)
         system_rendering(self.ecs_world, screen, self._c_camera, self._world_size)
         panel = self.engine.window_cfg["layout"]["panel"]
-        pygame.draw.rect(screen, color(panel["color"]),
-                         (panel["x"], panel["y"], panel["w"], panel["h"]))
+        system_rendering_panel(
+            self.ecs_world, screen, panel, self._world_size, self._panel_ship_texture
+        )
         if self._debug:
             self._draw_colliders(screen)
 

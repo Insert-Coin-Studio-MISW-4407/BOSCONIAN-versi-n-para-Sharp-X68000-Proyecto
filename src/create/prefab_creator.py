@@ -13,6 +13,9 @@ import pygame
 from src.ecs.components.c_blink import CBlink
 from src.ecs.components.c_camera import CCamera
 from src.ecs.components.c_heading import CHeading
+from src.ecs.components.c_alert_state import CAlertState
+from src.ecs.components.c_game_stats import CGameStats
+from src.ecs.components.c_stage_timer import CStageTimer
 from src.ecs.components.c_input_command import CInputCommand, InputDevice
 from src.ecs.components.c_rotating_sprite import CRotatingSprite
 from src.ecs.components.c_ship_motion import CShipMotion
@@ -166,6 +169,30 @@ def create_ui_image(world: esper.World, image_cfg: dict) -> int:
     world.add_component(entity, CSurface(texture))
     world.add_component(entity, CTagUI())
     _add_optional_blink(world, entity, image_cfg)
+    return entity
+
+
+# --------------------------------------------------------------- estado de partida
+def create_game_stats(world: esper.World, high_score: int, lives: int,
+                      round_number: int, high_score_path: str) -> int:
+    """Crea el estado ECS que alimenta el puntaje, el record y las vidas."""
+    entity = world.create_entity()
+    world.add_component(
+        entity, CGameStats(high_score, lives, round_number, high_score_path))
+    return entity
+
+
+def create_stage_timer(world: esper.World, duration: float) -> int:
+    """Crea el temporizador global de la ronda."""
+    entity = world.create_entity()
+    world.add_component(entity, CStageTimer(duration))
+    return entity
+
+
+def create_alert_state(world: esper.World) -> int:
+    """Crea el estado GREEN/YELLOW/RED consumido por el panel."""
+    entity = world.create_entity()
+    world.add_component(entity, CAlertState())
     return entity
 
 

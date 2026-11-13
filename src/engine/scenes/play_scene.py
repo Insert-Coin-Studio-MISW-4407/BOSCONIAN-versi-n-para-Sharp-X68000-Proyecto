@@ -1,7 +1,8 @@
 """Escena de juego: el mundo toroidal, la camara, el fondo de estrellas y la nave."""
 import pygame
 
-from src.create.prefab_creator import (create_alert_state, create_camera, create_game_stats,
+from src.create.prefab_creator import (create_alert_state, create_bases, create_camera,
+                                       create_game_stats,
                                        create_obstacles, create_player, create_player_shot,
                                        create_stage_timer, create_starfield, create_text,
                                        create_triple_shot, sprite_texture, vec)
@@ -16,6 +17,7 @@ from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
 from src.ecs.systems.s_alert import system_alert
 from src.ecs.systems.s_animation import system_animation
+from src.ecs.systems.s_base_core import system_base_core
 from src.ecs.systems.s_bullet_offscreen import system_bullet_offscreen
 from src.ecs.systems.s_camera import system_camera
 from src.ecs.systems.s_enemy_hits import system_blast, system_bullet_hits
@@ -98,6 +100,8 @@ class PlayScene(Scene):
         """Coloca los enemigos fijos del nivel lejos del punto de aparicion de la nave."""
         obstacles_cfg = self._level_cfg["obstacles"]
         occupied = [(vec(self._level_cfg["player_spawn"]), obstacles_cfg["player_safe_radius"])]
+        create_bases(self.ecs_world, self.engine.sprites_cfg, self.engine.enemies_cfg,
+                     self._level_cfg["bases"], occupied)
         create_obstacles(self.ecs_world, self.engine.sprites_cfg, self.engine.enemies_cfg,
                          obstacles_cfg, self._world_size, occupied)
 
@@ -175,6 +179,7 @@ class PlayScene(Scene):
         system_ship_motion(self.ecs_world, delta_time)
         system_player_sprite(self.ecs_world)
         system_animation(self.ecs_world, delta_time)
+        system_base_core(self.ecs_world, delta_time)
         system_movement(self.ecs_world, delta_time)
         system_world_wrap(self.ecs_world, self._world_size)
         system_camera(self.ecs_world, self._player_entity, self._world_size)

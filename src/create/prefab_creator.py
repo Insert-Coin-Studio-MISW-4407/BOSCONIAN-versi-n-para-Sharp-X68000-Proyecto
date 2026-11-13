@@ -11,6 +11,9 @@ import esper
 import pygame
 
 from src.ecs.components.c_animation import CAnimation
+from src.ecs.components.c_base import CBase
+from src.ecs.components.c_base_cannon import CBaseCannon
+from src.ecs.components.c_base_core import CBaseCore
 from src.ecs.components.c_blink import CBlink
 from src.ecs.components.c_camera import CCamera
 from src.ecs.components.c_enemy import CEnemy
@@ -27,6 +30,7 @@ from src.ecs.components.c_text import CText
 from src.ecs.components.c_transform import CTransform
 from src.ecs.components.c_velocity import CVelocity
 from src.ecs.components.c_weapon import CWeapon
+from src.ecs.components.tags.c_tag_base import CTagBase
 from src.ecs.components.tags.c_tag_player import CTagPlayer
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
@@ -34,7 +38,9 @@ from src.ecs.components.tags.c_tag_ui import CTagUI
 from src.engine.service_locator import ServiceLocator
 from src.engine.world_math import distance
 
-# Capas de dibujo (CSurface.layer): las explosiones van encima de todo.
+# Capas de dibujo (CSurface.layer): la estructura de las estaciones va al fondo y las
+# explosiones encima de todo.
+_LAYER_STRUCTURE = -1
 _LAYER_EFFECTS = 2
 
 
@@ -119,6 +125,66 @@ def create_mine(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
     world.component_for_entity(entity, CAnimation).timer = random.uniform(0, cfg["frame_time"])
     world.add_component(entity, CEnemy("mine", cfg["points"], "obstacle"))
     return entity
+
+
+def _base_frame_texture(sprites_cfg: dict, base_cfg: dict) -> pygame.Surface:
+    """Estructura de la estacion sacada de la ilustracion completa del atlas.
+
+    Se vacian los circulos de los canones y del nucleo: esas piezas son entidades
+    propias que se animan y se destruyen por separado.
+    """
+    sprite = sprites_cfg["sprites"][base_cfg["frame"]]
+    center_x, center_y = base_cfg["frame_center"]
+    holes = [(center_x + dx, center_y + dy, base_cfg["cannon_radius"])
+             for dx, dy in base_cfg["cannon_offsets"]]
+    holes.append((center_x, center_y, base_cfg["core_radius"]))
+    return ServiceLocator.textures_service.get_keyed_region(
+        sprites_cfg["sheet"], sprite["rect"], sprite["colorkey"], tuple(holes))
+
+
+def create_base(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+                center: pygame.Vector2) -> int:
+    """Estacion enemiga: estructura + nucleo + seis canones. Devuelve la entidad del nucleo.
+
+    Se destruye al acabar con los seis canones o con un disparo al nucleo abierto.
+    """
+    cfg = enemies_cfg["base"]
+    center = pygame.Vector2(center)
+    frame = create_centered_sprite(world, center, pygame.Vector2(0, 0),
+                                   _base_frame_texture(sprites_cfg, cfg), _LAYER_STRUCTURE)
+
+    core_frames = sprite_frames(sprites_cfg, cfg["core"])
+    core = create_centered_sprite(world, center, pygame.Vector2(0, 0), core_frames[-1])
+    world.add_component(core, CEnemy("core", 0))
+    # Cada estacion arranca su ciclo en un momento distinto
+    world.add_component(core, CBaseCore(core, core_frames, cfg["core_frame_time"],
+                                        cfg["core_open_time"], cfg["core_closed_time"],
+                                        random.uniform(0, cfg["core_closed_time"])))
+    world.add_component(core, CTagBase())
+
+    destroyed = sprite_texture(sprites_cfg, cfg["cannon_destroyed"])
+    cannons = []
+    for dx, dy in cfg["cannon_offsets"]:
+        # Los canones de la derecha son los de la izquierda en espejo
+        frames = sprite_frames(sprites_cfg, cfg["cannon"], flip_x=dx > 0)
+        cannon = create_centered_sprite(world, center + pygame.Vector2(dx, dy),
+                                        pygame.Vector2(0, 0), frames[0])
+        world.add_component(cannon, CEnemy("cannon", cfg["cannon_points"]))
+        world.add_component(cannon, CBaseCannon(core, frames, destroyed))
+        cannons.append(cannon)
+
+    world.add_component(core, CBase(frame, cannons, cfg["base_points"]))
+    return core
+
+
+def create_bases(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+                 bases_cfg: list[dict], occupied: list[tuple[pygame.Vector2, float]]) -> None:
+    """Estaciones del nivel en las posiciones fijas de level_XX.json."""
+    radius = enemies_cfg["base"]["clearance_radius"]
+    for base_cfg in bases_cfg:
+        center = vec(base_cfg)
+        create_base(world, sprites_cfg, enemies_cfg, center)
+        occupied.append((center, radius))
 
 
 def free_position(world_size: pygame.Vector2, occupied: list[tuple[pygame.Vector2, float]],

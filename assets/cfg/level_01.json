@@ -6,6 +6,14 @@
     "starting_lives": 3,
     "alert_time_limit_seconds": 120,
     "high_score_path": "save/high_score.json",
+    "bases": [
+        { "x": 280, "y": 300 },
+        { "x": 1180, "y": 250 },
+        { "x": 760, "y": 520 },
+        { "x": 420, "y": 1060 },
+        { "x": 1080, "y": 960 },
+        { "x": 1380, "y": 1360 }
+    ],
     "obstacles": {
         "asteroids": 45,
         "mines": 16,

@@ -13,5 +13,21 @@
         "frame_time": 0.3,
         "points": 20,
         "blast_radius": 30
+    },
+    "base": {
+        "frame": "base_frame",
+        "frame_center": [36, 32],
+        "cannon": "base_cannon",
+        "cannon_destroyed": "base_cannon_destroyed",
+        "cannon_offsets": [[-12, -24], [12, -24], [-28, 0], [28, 0], [-12, 24], [12, 24]],
+        "cannon_radius": 8.5,
+        "core": "base_core",
+        "core_radius": 10.5,
+        "core_frame_time": 0.12,
+        "core_open_time": 1.2,
+        "core_closed_time": 2.5,
+        "cannon_points": 200,
+        "base_points": 1500,
+        "clearance_radius": 56
     }
 }

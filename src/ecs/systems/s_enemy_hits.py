@@ -3,6 +3,9 @@ import esper
 import pygame
 
 from src.create.prefab_creator import create_explosion
+from src.ecs.components.c_base import CBase
+from src.ecs.components.c_base_cannon import CBaseCannon
+from src.ecs.components.c_base_core import CBaseCore
 from src.ecs.components.c_blast import CBlast
 from src.ecs.components.c_enemy import CEnemy
 from src.ecs.components.c_surface import CSurface
@@ -22,14 +25,60 @@ def entity_center(world: esper.World, entity: int) -> pygame.Vector2:
     return c_t.pos + pygame.Vector2(c_s.area.size) / 2
 
 
+def is_vulnerable(world: esper.World, entity: int) -> bool:
+    """El nucleo de una estacion solo se puede destruir mientras esta abierto."""
+    c_core = world.try_component(entity, CBaseCore)
+    return c_core is None or c_core.is_open
+
+
+def destroy_base(world: esper.World, core: int, sprites_cfg: dict, enemies_cfg: dict) -> None:
+    """La estacion entera explota: nucleo, canones (vivos o no) y estructura."""
+    c_base = world.component_for_entity(core, CBase)
+    for part in c_base.cannons + [core]:
+        create_explosion(world, sprites_cfg, enemies_cfg, entity_center(world, part))
+        if world.has_component(part, CEnemy):
+            world.remove_component(part, CEnemy)
+        world.delete_entity(part)
+    world.delete_entity(c_base.frame)
+    system_add_score(world, c_base.points)
+    world.remove_component(core, CBase)
+
+
+def _destroy_cannon(world: esper.World, cannon: int, sprites_cfg: dict,
+                    enemies_cfg: dict) -> None:
+    """El canon queda como chatarra; si era el ultimo, explota toda la estacion."""
+    c_e = world.component_for_entity(cannon, CEnemy)
+    c_c = world.component_for_entity(cannon, CBaseCannon)
+    create_explosion(world, sprites_cfg, enemies_cfg, entity_center(world, cannon))
+    system_add_score(world, c_e.points)
+    c_s = world.component_for_entity(cannon, CSurface)
+    c_s.surf = c_c.destroyed
+    c_s.area = c_s.surf.get_rect()
+    world.remove_component(cannon, CEnemy)
+    world.remove_component(cannon, CBaseCannon)
+
+    c_base = world.try_component(c_c.base_entity, CBase)
+    if c_base is None:
+        return
+    c_base.alive_cannons -= 1
+    if c_base.alive_cannons <= 0:
+        destroy_base(world, c_c.base_entity, sprites_cfg, enemies_cfg)
+
+
 def destroy_enemy(world: esper.World, entity: int, sprites_cfg: dict,
                   enemies_cfg: dict) -> None:
     """Borra el enemigo, deja su explosion y suma sus puntos.
 
     Las minas dejan ademas una onda expansiva (CBlast) que se resuelve en
-    system_blast el mismo frame.
+    system_blast el mismo frame. Las piezas de las estaciones tienen reglas propias.
     """
     c_e = world.component_for_entity(entity, CEnemy)
+    if c_e.kind == "cannon":
+        _destroy_cannon(world, entity, sprites_cfg, enemies_cfg)
+        return
+    if c_e.kind == "core":
+        destroy_base(world, entity, sprites_cfg, enemies_cfg)
+        return
     center = entity_center(world, entity)
     explosion = create_explosion(world, sprites_cfg, enemies_cfg, center, c_e.explosion)
     if c_e.kind == "mine":
@@ -50,8 +99,10 @@ def system_bullet_hits(world: esper.World, world_size: pygame.Vector2, sprites_c
             if not world.has_component(enemy, CEnemy):
                 continue
             if collide_world(b_t.pos, b_s.area, e_t.pos, e_s.area, world_size):
+                # Un nucleo cerrado absorbe la bala sin danarse
                 world.delete_entity(bullet)
-                destroy_enemy(world, enemy, sprites_cfg, enemies_cfg)
+                if is_vulnerable(world, enemy):
+                    destroy_enemy(world, enemy, sprites_cfg, enemies_cfg)
                 break
 
 

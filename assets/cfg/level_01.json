@@ -14,6 +14,12 @@
         { "x": 1080, "y": 960 },
         { "x": 1380, "y": 1360 }
     ],
+    "rounds": {
+        "clear_delay": 3.0,
+        "banner_time": 2.0,
+        "interval_scale": 0.85,
+        "min_interval_scale": 0.5
+    },
     "obstacles": {
         "asteroids": 45,
         "mines": 16,

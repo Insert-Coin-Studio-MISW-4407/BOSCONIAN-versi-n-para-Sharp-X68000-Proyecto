@@ -6,8 +6,11 @@ from src.create.prefab_creator import (create_alert_state, create_bases, create_
                                        create_obstacles, create_player, create_player_shot,
                                        create_stage_timer, create_starfield, create_text,
                                        create_triple_shot, sprite_texture, vec)
+from src.ecs.components.c_base import CBase
 from src.ecs.components.c_blink import CBlink
 from src.ecs.components.c_camera import CCamera
+from src.ecs.components.c_enemy import CEnemy
+from src.ecs.components.c_enemy_spawner import CEnemySpawner
 from src.ecs.components.c_game_stats import CGameStats
 from src.ecs.components.c_heading import CHeading
 from src.ecs.components.c_input_command import CInputCommand, CommandPhase
@@ -16,6 +19,8 @@ from src.ecs.components.c_ship_motion import CShipMotion
 from src.ecs.components.c_surface import CSurface
 from src.ecs.components.c_transform import CTransform
 from src.ecs.components.c_weapon import CWeapon
+from src.ecs.components.tags.c_tag_enemy_bullet import CTagEnemyBullet
+from src.ecs.components.tags.c_tag_player import CTagPlayer
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
 from src.ecs.systems.s_alert import enemies_near, is_red_alert, system_alert
@@ -38,7 +43,7 @@ from src.ecs.systems.s_rendering import system_rendering
 from src.ecs.systems.s_rendering_panel import system_rendering_panel
 from src.ecs.systems.s_rendering_stars import system_rendering_stars
 from src.ecs.systems.s_ship_motion import system_ship_motion
-from src.ecs.systems.s_stage_timer import system_stage_timer
+from src.ecs.systems.s_stage_timer import system_stage_timer, system_start_next_round
 from src.ecs.systems.s_stars import system_stars
 from src.ecs.systems.s_world_wrap import system_world_wrap
 from src.engine.scenes.scene import Scene
@@ -68,7 +73,9 @@ class PlayScene(Scene):
         self._respawn_timer = 0.0
         self._respawn_pos = pygame.Vector2(0, 0)
         self._game_over_timer: float | None = None
+        self._round_clear_timer: float | None = None
         self._message_text: int | None = None
+        self._message_timer: float | None = None
 
     # --------------------------------------------------------------------- creacion
     def do_create(self) -> None:
@@ -224,9 +231,12 @@ class PlayScene(Scene):
         target = self._ship_center()
         system_ship_motion(world, delta_time)
         heading = self._player_c_h.direction if self._player_entity is not None else None
-        system_enemy_spawner(world, delta_time, target, heading, is_red_alert(world),
+        # Con la ronda ya ganada no aparecen enemigos nuevos
+        spawn_target = target if self._round_clear_timer is None else None
+        system_enemy_spawner(world, delta_time, spawn_target, heading, is_red_alert(world),
                              engine.sprites_cfg, enemies_cfg)
-        system_spy_spawner(world, delta_time, target, heading, engine.sprites_cfg, enemies_cfg)
+        system_spy_spawner(world, delta_time, spawn_target, heading, engine.sprites_cfg,
+                           enemies_cfg)
         system_chaser(world, delta_time, target, self._world_size,
                       enemies_cfg["spawner"]["despawn_distance"])
         system_spy(world, delta_time, target, self._world_size)
@@ -262,7 +272,28 @@ class PlayScene(Scene):
             world, self._ship_center(), self._world_size,
             enemies_cfg["alert"]["detect_radius"]))
 
+        if self._round_clear_timer is None and self._game_over_timer is None \
+                and not world.get_component(CBase):
+            self._start_round_clear()
         self._update_death_flow(delta_time)
+        self._update_round_flow(delta_time)
+        self._update_message(delta_time)
+
+    def _show_message(self, text: str, seconds: float | None = None) -> None:
+        """Mensaje central unico (GAME OVER, ROUND CLEAR...); `seconds` None = permanente."""
+        if self._message_text is not None:
+            self.ecs_world.delete_entity(self._message_text)
+        self._message_text = self._create_message(text, dy=-40)
+        self._message_timer = seconds
+
+    def _update_message(self, delta_time: float) -> None:
+        if self._message_timer is None:
+            return
+        self._message_timer -= delta_time
+        if self._message_timer <= 0 and self._message_text is not None:
+            self.ecs_world.delete_entity(self._message_text)
+            self._message_text = None
+            self._message_timer = None
 
     def _kill_player(self) -> None:
         """La nave explota y se descuenta una vida; sin vidas, termina la partida."""
@@ -274,7 +305,7 @@ class PlayScene(Scene):
         death_cfg = self.engine.player_cfg["death"]
         if self._c_stats.lives <= 0:
             self._game_over_timer = death_cfg["game_over_delay"]
-            self._message_text = self._create_message("GAME OVER", dy=-40)
+            self._show_message("GAME OVER")
         else:
             # Como en el original, la nave reaparece donde exploto
             self._respawn_timer = death_cfg["respawn_delay"]
@@ -289,6 +320,53 @@ class PlayScene(Scene):
             self._respawn_timer -= delta_time
             if self._respawn_timer <= 0:
                 self._spawn_player(self._respawn_pos)
+
+    # -------------------------------------------------------------------------- rondas
+    def _start_round_clear(self) -> None:
+        """Todas las estaciones cayeron: la nave queda a salvo hasta la ronda siguiente."""
+        rounds_cfg = self._level_cfg["rounds"]
+        self._round_clear_timer = rounds_cfg["clear_delay"]
+        self._show_message("ROUND CLEAR")
+        if self._player_entity is not None:
+            self.ecs_world.add_component(self._player_entity,
+                                         CInvulnerable(rounds_cfg["clear_delay"] + 1))
+
+    def _update_round_flow(self, delta_time: float) -> None:
+        if self._round_clear_timer is None or self._game_over_timer is not None:
+            return
+        self._round_clear_timer -= delta_time
+        if self._round_clear_timer <= 0:
+            self._round_clear_timer = None
+            self._start_next_round()
+
+    def _start_next_round(self) -> None:
+        """Limpia el mundo, vuelve a poblarlo y deja la nave en el punto de partida.
+
+        Se conservan puntaje, record y vidas; el temporizador y la alerta se reinician
+        y los enemigos aparecen un poco mas seguido en cada ronda.
+        """
+        world = self.ecs_world
+        rounds_cfg = self._level_cfg["rounds"]
+        for component in (CEnemy, CTagEnemyBullet, CTagPlayerBullet, CTagPlayer):
+            for entity, _ in world.get_component(component):
+                world.delete_entity(entity)
+        self._player_entity = None
+
+        round_number = self._c_stats.round_number + 1
+        system_start_next_round(world, round_number,
+                                self._level_cfg.get("alert_time_limit_seconds", 120))
+        spawner_cfg = self.engine.enemies_cfg["spawner"]
+        for _, c_sp in world.get_component(CEnemySpawner):
+            c_sp.timer = spawner_cfg["first_delay"]
+            c_sp.spy_timer = self.engine.enemies_cfg["spy"]["first_delay"]
+            c_sp.interval_scale = max(rounds_cfg["min_interval_scale"],
+                                      c_sp.interval_scale * rounds_cfg["interval_scale"])
+
+        self._populate_level()
+        self._spawn_player(vec(self._level_cfg["player_spawn"]))
+        system_camera(world, self._player_entity, self._world_size)
+        self._c_camera.delta.update(0, 0)
+        self._show_message(f"ROUND {round_number}", rounds_cfg["banner_time"])
 
     # ------------------------------------------------------------------------ dibujo
     def do_draw(self, screen: pygame.Surface) -> None:

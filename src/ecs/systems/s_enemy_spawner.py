@@ -35,7 +35,8 @@ def system_enemy_spawner(world: esper.World, delta_time: float, target: pygame.V
         c_sp.timer -= delta_time
         if c_sp.timer > 0:
             continue
-        c_sp.timer = random.uniform(*cfg["red_interval" if red_alert else "interval"])
+        c_sp.timer = random.uniform(*cfg["red_interval" if red_alert else "interval"]) \
+            * c_sp.interval_scale
         if target is None or len(world.get_component(CChaser)) >= cfg["max_alive"]:
             continue
         pos = spawn_point(target, heading, cfg["spawn_distance"], cfg["spawn_ahead_spread"])

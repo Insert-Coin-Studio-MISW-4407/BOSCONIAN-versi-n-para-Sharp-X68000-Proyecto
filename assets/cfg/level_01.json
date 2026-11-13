@@ -5,5 +5,11 @@
     "round_number": 1,
     "starting_lives": 3,
     "alert_time_limit_seconds": 120,
-    "high_score_path": "save/high_score.json"
+    "high_score_path": "save/high_score.json",
+    "obstacles": {
+        "asteroids": 45,
+        "mines": 16,
+        "min_spacing": 28,
+        "player_safe_radius": 96
+    }
 }

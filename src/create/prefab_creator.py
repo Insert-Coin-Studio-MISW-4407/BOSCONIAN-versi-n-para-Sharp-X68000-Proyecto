@@ -13,6 +13,7 @@ import pygame
 from src.ecs.components.c_animation import CAnimation
 from src.ecs.components.c_blink import CBlink
 from src.ecs.components.c_camera import CCamera
+from src.ecs.components.c_enemy import CEnemy
 from src.ecs.components.c_heading import CHeading
 from src.ecs.components.c_alert_state import CAlertState
 from src.ecs.components.c_game_stats import CGameStats
@@ -31,6 +32,7 @@ from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
 from src.ecs.components.tags.c_tag_ui import CTagUI
 from src.engine.service_locator import ServiceLocator
+from src.engine.world_math import distance
 
 # Capas de dibujo (CSurface.layer): las explosiones van encima de todo.
 _LAYER_EFFECTS = 2
@@ -94,6 +96,61 @@ def create_explosion(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
     return create_animated(world, center, sprite_frames(sprites_cfg, explosions[kind]),
                            explosions["frame_time"], loop=False, delete_on_end=True,
                            layer=_LAYER_EFFECTS)
+
+
+# ---------------------------------------------------------------------- enemigos
+def create_asteroid(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+                    center: pygame.Vector2) -> int:
+    """Asteroide fijo: obstaculo que se destruye de un disparo."""
+    cfg = enemies_cfg["asteroid"]
+    texture = sprite_texture(sprites_cfg, random.choice(cfg["sprites"]))
+    entity = create_centered_sprite(world, center, pygame.Vector2(0, 0), texture)
+    world.add_component(entity, CEnemy("asteroid", cfg["points"], "obstacle"))
+    return entity
+
+
+def create_mine(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+                center: pygame.Vector2) -> int:
+    """Mina cosmica: parpadea y al destruirse deja una onda que arrasa lo que la rodea."""
+    cfg = enemies_cfg["mine"]
+    entity = create_animated(world, center, sprite_frames(sprites_cfg, cfg["sprite"]),
+                             cfg["frame_time"])
+    # Cada mina arranca en un momento distinto del parpadeo
+    world.component_for_entity(entity, CAnimation).timer = random.uniform(0, cfg["frame_time"])
+    world.add_component(entity, CEnemy("mine", cfg["points"], "obstacle"))
+    return entity
+
+
+def free_position(world_size: pygame.Vector2, occupied: list[tuple[pygame.Vector2, float]],
+                  radius: float, attempts: int = 200) -> pygame.Vector2 | None:
+    """Posicion al azar en el mundo que no pisa nada de `occupied` (centro, radio).
+
+    La distancia se mide por el camino mas corto del toro. Devuelve None si no hay sitio.
+    """
+    for _ in range(attempts):
+        pos = pygame.Vector2(random.uniform(0, world_size.x), random.uniform(0, world_size.y))
+        if all(distance(pos, other, world_size) >= radius + other_radius
+               for other, other_radius in occupied):
+            return pos
+    return None
+
+
+def create_obstacles(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+                     obstacles_cfg: dict, world_size: pygame.Vector2,
+                     occupied: list[tuple[pygame.Vector2, float]]) -> None:
+    """Reparte asteroides y minas por el mundo sin pisarse entre si ni lo ya ocupado.
+
+    `occupied` se amplia con cada obstaculo creado.
+    """
+    spacing = obstacles_cfg["min_spacing"] / 2
+    for count, create in ((obstacles_cfg["asteroids"], create_asteroid),
+                          (obstacles_cfg["mines"], create_mine)):
+        for _ in range(count):
+            pos = free_position(world_size, occupied, spacing)
+            if pos is None:
+                return
+            create(world, sprites_cfg, enemies_cfg, pos)
+            occupied.append((pos, spacing))
 
 
 def _add_optional_blink(world: esper.World, entity: int, cfg: dict) -> None:

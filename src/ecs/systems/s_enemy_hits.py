@@ -8,6 +8,7 @@ from src.ecs.components.c_base_cannon import CBaseCannon
 from src.ecs.components.c_base_core import CBaseCore
 from src.ecs.components.c_blast import CBlast
 from src.ecs.components.c_enemy import CEnemy
+from src.ecs.components.c_formation import CFormationLeader, CFormationMember
 from src.ecs.components.c_surface import CSurface
 from src.ecs.components.c_transform import CTransform
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
@@ -79,6 +80,12 @@ def destroy_enemy(world: esper.World, entity: int, sprites_cfg: dict,
     if c_e.kind == "core":
         destroy_base(world, entity, sprites_cfg, enemies_cfg)
         return
+    # Derribar al lider mientras conserva escoltas da un bonus (y rompe la formacion)
+    c_leader = world.try_component(entity, CFormationLeader)
+    if c_leader is not None and any(world.entity_exists(member) and
+                                    world.has_component(member, CFormationMember)
+                                    for member in c_leader.members):
+        system_add_score(world, c_leader.bonus)
     center = entity_center(world, entity)
     explosion = create_explosion(world, sprites_cfg, enemies_cfg, center, c_e.explosion)
     if c_e.kind == "mine":

@@ -19,6 +19,7 @@ from src.ecs.components.c_camera import CCamera
 from src.ecs.components.c_chaser import CChaser
 from src.ecs.components.c_enemy import CEnemy
 from src.ecs.components.c_enemy_spawner import CEnemySpawner
+from src.ecs.components.c_formation import CFormationLeader, CFormationMember
 from src.ecs.components.c_heading import CHeading
 from src.ecs.components.c_alert_state import CAlertState
 from src.ecs.components.c_game_stats import CGameStats
@@ -35,6 +36,7 @@ from src.ecs.components.c_velocity import CVelocity
 from src.ecs.components.c_weapon import CWeapon
 from src.ecs.components.tags.c_tag_base import CTagBase
 from src.ecs.components.tags.c_tag_enemy_bullet import CTagEnemyBullet
+from src.ecs.components.tags.c_tag_formation import CTagFormation
 from src.ecs.components.tags.c_tag_player import CTagPlayer
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
@@ -198,6 +200,32 @@ def create_enemy_ship(world: esper.World, sprites_cfg: dict, enemies_cfg: dict, 
     world.add_component(entity, CHeading(direction.normalize()))
     world.add_component(entity, CRotatingSprite(sprites_cfg["sheet"], sprite["rect"]))
     return entity
+
+
+def create_formation(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+                     center: pygame.Vector2, target: pygame.Vector2) -> int:
+    """Formacion: un lider y sus escoltas en V. El lider lleva CTagFormation (radar)."""
+    cfg = enemies_cfg["formation"]
+    leader = create_enemy_ship(world, sprites_cfg, enemies_cfg, cfg["leader"], center, target)
+    c_chaser = world.component_for_entity(leader, CChaser)
+    c_chaser.speed = cfg["speed"]
+    c_chaser.turn_rate = cfg["turn_rate"]
+    world.component_for_entity(leader, CVelocity).vel.scale_to_length(cfg["speed"])
+    world.component_for_entity(leader, CEnemy).points = cfg["leader_points"]
+    world.add_component(leader, CTagFormation())
+
+    member_cfg = enemies_cfg["ships"][cfg["member"]]
+    members = []
+    for offset in cfg["offsets"]:
+        member = create_enemy_ship(world, sprites_cfg, enemies_cfg, cfg["member"], center, target)
+        # La escolta no persigue por su cuenta mientras el lider viva
+        world.remove_component(member, CChaser)
+        world.component_for_entity(member, CVelocity).vel = pygame.Vector2(0, 0)
+        world.add_component(member, CFormationMember(leader, vec({"x": offset[0], "y": offset[1]}),
+                                                     member_cfg["speed"], member_cfg["turn_rate"]))
+        members.append(member)
+    world.add_component(leader, CFormationLeader(members, cfg["leader_bonus"]))
+    return leader
 
 
 def create_enemy_spawner(world: esper.World, enemies_cfg: dict) -> int:

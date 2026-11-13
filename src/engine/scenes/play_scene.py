@@ -26,6 +26,7 @@ from src.ecs.systems.s_bullet_offscreen import system_bullet_offscreen
 from src.ecs.systems.s_camera import system_camera
 from src.ecs.systems.s_chaser import system_chaser
 from src.ecs.systems.s_enemy_spawner import system_enemy_spawner
+from src.ecs.systems.s_formation import system_formation
 from src.ecs.systems.s_enemy_hits import system_blast, system_bullet_hits
 from src.ecs.systems.s_game_stats import load_high_score, system_lose_life
 from src.ecs.systems.s_lifetime import system_lifetime
@@ -236,6 +237,7 @@ class PlayScene(Scene):
         system_lifetime(world, delta_time)
         system_movement(world, delta_time)
         system_world_wrap(world, self._world_size)
+        system_formation(world)
         if self._player_entity is not None:
             system_camera(world, self._player_entity, self._world_size)
         else:

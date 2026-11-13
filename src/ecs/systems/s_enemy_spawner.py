@@ -3,7 +3,7 @@ import random
 import esper
 import pygame
 
-from src.create.prefab_creator import create_enemy_ship
+from src.create.prefab_creator import create_enemy_ship, create_formation
 from src.ecs.components.c_chaser import CChaser
 from src.ecs.components.c_enemy_spawner import CEnemySpawner
 
@@ -38,6 +38,10 @@ def system_enemy_spawner(world: esper.World, delta_time: float, target: pygame.V
         c_sp.timer = random.uniform(*cfg["red_interval" if red_alert else "interval"])
         if target is None or len(world.get_component(CChaser)) >= cfg["max_alive"]:
             continue
-        kind = random.choice(cfg["types"])
         pos = spawn_point(target, heading, cfg["spawn_distance"], cfg["spawn_ahead_spread"])
-        create_enemy_ship(world, sprites_cfg, enemies_cfg, kind, pos, target)
+        formation_cfg = enemies_cfg["formation"]
+        if random.random() < formation_cfg["red_chance" if red_alert else "chance"]:
+            create_formation(world, sprites_cfg, enemies_cfg, pos, target)
+        else:
+            create_enemy_ship(world, sprites_cfg, enemies_cfg, random.choice(cfg["types"]),
+                              pos, target)

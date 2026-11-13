@@ -52,6 +52,17 @@
         "despawn_distance": 420,
         "types": ["I", "I", "I", "P", "P", "E"]
     },
+    "formation": {
+        "leader": "P",
+        "member": "I",
+        "offsets": [[-14, 12], [14, 12], [-28, 24], [28, 24]],
+        "speed": 80,
+        "turn_rate": 55,
+        "leader_points": 100,
+        "leader_bonus": 1000,
+        "chance": 0.15,
+        "red_chance": 0.4
+    },
     "alert": {
         "detect_radius": 140
     },

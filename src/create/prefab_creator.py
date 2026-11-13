@@ -27,6 +27,7 @@ from src.ecs.components.c_stage_timer import CStageTimer
 from src.ecs.components.c_input_command import CInputCommand, InputDevice
 from src.ecs.components.c_lifetime import CLifetime
 from src.ecs.components.c_rotating_sprite import CRotatingSprite
+from src.ecs.components.c_spy import CSpy
 from src.ecs.components.c_ship_motion import CShipMotion
 from src.ecs.components.c_star import CStar
 from src.ecs.components.c_surface import CSurface
@@ -230,7 +231,26 @@ def create_formation(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
 
 def create_enemy_spawner(world: esper.World, enemies_cfg: dict) -> int:
     entity = world.create_entity()
-    world.add_component(entity, CEnemySpawner(enemies_cfg["spawner"]["first_delay"]))
+    world.add_component(entity, CEnemySpawner(enemies_cfg["spawner"]["first_delay"],
+                                              enemies_cfg["spy"]["first_delay"]))
+    return entity
+
+
+def create_spy(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+               center: pygame.Vector2, target: pygame.Vector2) -> int:
+    """Nave espia: no ataca; si consigue escapar tras observar la nave, activa RED."""
+    cfg = enemies_cfg["spy"]
+    sprite = sprites_cfg["sprites"][cfg["sprite"]]
+    direction = pygame.Vector2(target) - pygame.Vector2(center)
+    if direction.length_squared() == 0:
+        direction = pygame.Vector2(0, -1)
+    direction.scale_to_length(cfg["speed"])
+    entity = create_centered_sprite(world, center, direction,
+                                    sprite_texture(sprites_cfg, cfg["sprite"]), layer=1)
+    world.add_component(entity, CEnemy("ship", cfg["points"]))
+    world.add_component(entity, CSpy(cfg))
+    world.add_component(entity, CHeading(direction.normalize()))
+    world.add_component(entity, CRotatingSprite(sprites_cfg["sheet"], sprite["rect"]))
     return entity
 
 

@@ -3,7 +3,7 @@ import esper
 import pygame
 
 from src.ecs.components.c_alert_state import CAlertState
-from src.ecs.components.c_chaser import CChaser
+from src.ecs.components.c_enemy import CEnemy
 from src.ecs.components.c_stage_timer import CStageTimer
 from src.ecs.components.c_surface import CSurface
 from src.ecs.components.c_transform import CTransform
@@ -15,8 +15,9 @@ def enemies_near(world: esper.World, target: pygame.Vector2 | None,
     """True si alguna nave enemiga esta a menos de `radius` de la nave (condicion YELLOW)."""
     if target is None:
         return False
-    for _, (_, c_t, c_s) in world.get_components(CChaser, CTransform, CSurface):
-        if distance(c_t.pos + pygame.Vector2(c_s.area.size) / 2, target, world_size) <= radius:
+    for _, (c_e, c_t, c_s) in world.get_components(CEnemy, CTransform, CSurface):
+        if c_e.kind == "ship" and \
+                distance(c_t.pos + pygame.Vector2(c_s.area.size) / 2, target, world_size) <= radius:
             return True
     return False
 
@@ -50,7 +51,7 @@ def system_alert(world: esper.World, enemy_detected: bool = False) -> None:
 
 
 def system_report_spy(world: esper.World) -> None:
-    """Punto de integracion futuro: la nave espia consiguio enviar su reporte."""
+    """La nave espia consiguio escapar y enviar su reporte (lo llama system_spy)."""
     for _, alert in world.get_component(CAlertState):
         alert.spy_reported = True
         alert.red_latched = True

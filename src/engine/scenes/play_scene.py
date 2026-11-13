@@ -27,6 +27,7 @@ from src.ecs.systems.s_camera import system_camera
 from src.ecs.systems.s_chaser import system_chaser
 from src.ecs.systems.s_enemy_spawner import system_enemy_spawner
 from src.ecs.systems.s_formation import system_formation
+from src.ecs.systems.s_spy import system_spy, system_spy_spawner
 from src.ecs.systems.s_enemy_hits import system_blast, system_bullet_hits
 from src.ecs.systems.s_game_stats import load_high_score, system_lose_life
 from src.ecs.systems.s_lifetime import system_lifetime
@@ -225,8 +226,10 @@ class PlayScene(Scene):
         heading = self._player_c_h.direction if self._player_entity is not None else None
         system_enemy_spawner(world, delta_time, target, heading, is_red_alert(world),
                              engine.sprites_cfg, enemies_cfg)
+        system_spy_spawner(world, delta_time, target, heading, engine.sprites_cfg, enemies_cfg)
         system_chaser(world, delta_time, target, self._world_size,
                       enemies_cfg["spawner"]["despawn_distance"])
+        system_spy(world, delta_time, target, self._world_size)
         # Gira el sprite de todo lo que tenga rumbo: la nave y las naves enemigas
         system_player_sprite(world)
         system_animation(world, delta_time)

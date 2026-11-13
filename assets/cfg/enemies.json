@@ -63,6 +63,17 @@
         "chance": 0.15,
         "red_chance": 0.4
     },
+    "spy": {
+        "sprite": "enemy_spy",
+        "speed": 95,
+        "flee_speed": 135,
+        "watch_radius": 80,
+        "report_time": 4.0,
+        "escape_distance": 240,
+        "points": 800,
+        "first_delay": 20.0,
+        "interval": [30.0, 45.0]
+    },
     "alert": {
         "detect_radius": 140
     },

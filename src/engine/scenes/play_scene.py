@@ -15,6 +15,7 @@ from src.ecs.components.c_weapon import CWeapon
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
 from src.ecs.systems.s_alert import system_alert
+from src.ecs.systems.s_animation import system_animation
 from src.ecs.systems.s_bullet_offscreen import system_bullet_offscreen
 from src.ecs.systems.s_camera import system_camera
 from src.ecs.systems.s_movement import system_movement
@@ -162,6 +163,7 @@ class PlayScene(Scene):
             return
         system_ship_motion(self.ecs_world, delta_time)
         system_player_sprite(self.ecs_world)
+        system_animation(self.ecs_world, delta_time)
         system_movement(self.ecs_world, delta_time)
         system_world_wrap(self.ecs_world, self._world_size)
         system_camera(self.ecs_world, self._player_entity, self._world_size)

@@ -10,6 +10,7 @@ import random
 import esper
 import pygame
 
+from src.ecs.components.c_animation import CAnimation
 from src.ecs.components.c_blink import CBlink
 from src.ecs.components.c_camera import CCamera
 from src.ecs.components.c_heading import CHeading
@@ -30,6 +31,9 @@ from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
 from src.ecs.components.tags.c_tag_ui import CTagUI
 from src.engine.service_locator import ServiceLocator
+
+# Capas de dibujo (CSurface.layer): las explosiones van encima de todo.
+_LAYER_EFFECTS = 2
 
 
 def vec(cfg: dict) -> pygame.Vector2:
@@ -55,6 +59,41 @@ def sprite_texture(sprites_cfg: dict, name: str) -> pygame.Surface:
     """Recorte de la hoja de sprites declarado en sprites.json."""
     return ServiceLocator.textures_service.get_region(
         sprites_cfg["sheet"], sprites_cfg["sprites"][name]["rect"])
+
+
+def sprite_frames(sprites_cfg: dict, name: str, flip_x: bool = False) -> list[pygame.Surface]:
+    """Cuadros de una animacion de sprites.json (o el recorte unico como un solo cuadro)."""
+    sprite = sprites_cfg["sprites"][name]
+    rects = sprite.get("frames", [sprite.get("rect")])
+    return [ServiceLocator.textures_service.get_region(sprites_cfg["sheet"], rect, flip_x=flip_x)
+            for rect in rects]
+
+
+def create_centered_sprite(world: esper.World, center: pygame.Vector2, vel: pygame.Vector2,
+                           texture: pygame.Surface, layer: int = 0) -> int:
+    """Como create_sprite, pero recibe el CENTRO de la entidad (asi se ubican los enemigos)."""
+    topleft = pygame.Vector2(center) - pygame.Vector2(texture.get_size()) / 2
+    entity = create_sprite(world, topleft, vel, texture)
+    world.component_for_entity(entity, CSurface).layer = layer
+    return entity
+
+
+def create_animated(world: esper.World, center: pygame.Vector2, frames: list[pygame.Surface],
+                    frame_time: float, loop: bool = True, delete_on_end: bool = False,
+                    layer: int = 0) -> int:
+    entity = create_centered_sprite(world, center, pygame.Vector2(0, 0), frames[0], layer)
+    world.add_component(entity, CAnimation(frames, frame_time, loop, delete_on_end))
+    return entity
+
+
+def create_explosion(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+                     center: pygame.Vector2, kind: str = "enemy") -> int:
+    """Explosion que se reproduce una vez y desaparece. `kind` elige la paleta del atlas
+    (naranja para naves y estaciones, amarilla para asteroides y minas)."""
+    explosions = enemies_cfg["explosions"]
+    return create_animated(world, center, sprite_frames(sprites_cfg, explosions[kind]),
+                           explosions["frame_time"], loop=False, delete_on_end=True,
+                           layer=_LAYER_EFFECTS)
 
 
 def _add_optional_blink(world: esper.World, entity: int, cfg: dict) -> None:

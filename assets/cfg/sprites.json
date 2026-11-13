@@ -1,10 +1,33 @@
 {
-    "_comentario": "Recortes de la hoja de sprites. rect = [x, y, ancho, alto]. Si hay frames, el rect es la tira completa.",
+    "_comentario": "Recortes de la hoja de sprites. rect = [x, y, ancho, alto]. Las animaciones listan un rect por cuadro en frames.",
     "sheet": "assets/img/naves.png",
     "sprites": {
         "player": { "rect": [124, 7, 15, 18] },
         "bullet_vertical": { "rect": [4, 75, 4, 6] },
         "bullet_horizontal": { "rect": [13, 76, 6, 4] },
-        "bullet_diagonal": { "rect": [23, 75, 7, 6] }
+        "bullet_diagonal": { "rect": [23, 75, 7, 6] },
+
+        "asteroid_1": { "rect": [148, 9, 15, 11] },
+        "asteroid_2": { "rect": [166, 6, 14, 14] },
+        "asteroid_3": { "rect": [181, 8, 14, 12] },
+        "asteroid_4": { "rect": [149, 34, 15, 11] },
+        "asteroid_5": { "rect": [167, 31, 14, 14] },
+        "asteroid_6": { "rect": [182, 33, 14, 12] },
+        "mine": { "frames": [[0, 87, 15, 15], [18, 87, 15, 15]] },
+
+        "base_frame": { "rect": [124, 56, 72, 64], "colorkey": [255, 0, 255] },
+        "base_cannon": { "frames": [[0, 9, 16, 16], [21, 9, 16, 16], [42, 9, 16, 16]] },
+        "base_cannon_destroyed": { "rect": [63, 9, 16, 16] },
+        "base_core": { "frames": [[0, 46, 20, 20], [24, 46, 20, 20], [48, 46, 20, 20], [72, 46, 20, 20]] },
+
+        "enemy_i": { "rect": [0, 111, 14, 14] },
+        "enemy_p": { "rect": [20, 113, 13, 12] },
+        "enemy_e": { "rect": [41, 109, 7, 16] },
+        "enemy_spy": { "rect": [56, 112, 11, 13] },
+
+        "explosion_orange": { "frames": [[0, 133, 16, 16], [16, 133, 16, 16], [32, 133, 16, 16],
+                                         [48, 133, 16, 16], [65, 133, 16, 16], [81, 133, 16, 16]] },
+        "explosion_yellow": { "frames": [[103, 133, 16, 16], [119, 133, 16, 16], [135, 133, 16, 16],
+                                         [151, 133, 16, 16], [168, 133, 16, 16], [183, 133, 16, 16]] }
     }
 }

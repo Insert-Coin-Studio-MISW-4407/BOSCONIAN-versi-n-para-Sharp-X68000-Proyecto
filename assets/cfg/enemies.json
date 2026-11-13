@@ -1,0 +1,7 @@
+{
+    "explosions": {
+        "frame_time": 0.06,
+        "enemy": "explosion_orange",
+        "obstacle": "explosion_yellow"
+    }
+}

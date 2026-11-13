@@ -28,6 +28,23 @@
         "core_closed_time": 2.5,
         "cannon_points": 200,
         "base_points": 1500,
-        "clearance_radius": 56
+        "clearance_radius": 56,
+        "fire": {
+            "range": 110,
+            "check_interval": 0.25,
+            "charge_time": 0.35,
+            "fire_time": 0.2,
+            "cooldown": [1.6, 3.4]
+        }
+    },
+    "enemy_bullet": {
+        "speed": 110,
+        "lifetime": 1.6,
+        "tint": [255, 110, 255],
+        "bullet_sprites": {
+            "vertical": "bullet_vertical",
+            "horizontal": "bullet_horizontal",
+            "diagonal": "bullet_diagonal"
+        }
     }
 }

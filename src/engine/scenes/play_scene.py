@@ -17,7 +17,9 @@ from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
 from src.ecs.systems.s_alert import system_alert
 from src.ecs.systems.s_animation import system_animation
+from src.ecs.systems.s_base_cannon import system_base_cannon
 from src.ecs.systems.s_base_core import system_base_core
+from src.ecs.systems.s_lifetime import system_lifetime
 from src.ecs.systems.s_bullet_offscreen import system_bullet_offscreen
 from src.ecs.systems.s_camera import system_camera
 from src.ecs.systems.s_enemy_hits import system_blast, system_bullet_hits
@@ -180,6 +182,9 @@ class PlayScene(Scene):
         system_player_sprite(self.ecs_world)
         system_animation(self.ecs_world, delta_time)
         system_base_core(self.ecs_world, delta_time)
+        system_base_cannon(self.ecs_world, delta_time, self._ship_center(), self._world_size,
+                           engine.sprites_cfg, engine.enemies_cfg)
+        system_lifetime(self.ecs_world, delta_time)
         system_movement(self.ecs_world, delta_time)
         system_world_wrap(self.ecs_world, self._world_size)
         system_camera(self.ecs_world, self._player_entity, self._world_size)

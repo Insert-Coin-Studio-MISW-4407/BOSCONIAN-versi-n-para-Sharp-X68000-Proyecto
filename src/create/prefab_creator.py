@@ -22,6 +22,7 @@ from src.ecs.components.c_alert_state import CAlertState
 from src.ecs.components.c_game_stats import CGameStats
 from src.ecs.components.c_stage_timer import CStageTimer
 from src.ecs.components.c_input_command import CInputCommand, InputDevice
+from src.ecs.components.c_lifetime import CLifetime
 from src.ecs.components.c_rotating_sprite import CRotatingSprite
 from src.ecs.components.c_ship_motion import CShipMotion
 from src.ecs.components.c_star import CStar
@@ -31,6 +32,7 @@ from src.ecs.components.c_transform import CTransform
 from src.ecs.components.c_velocity import CVelocity
 from src.ecs.components.c_weapon import CWeapon
 from src.ecs.components.tags.c_tag_base import CTagBase
+from src.ecs.components.tags.c_tag_enemy_bullet import CTagEnemyBullet
 from src.ecs.components.tags.c_tag_player import CTagPlayer
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
@@ -170,11 +172,24 @@ def create_base(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
         cannon = create_centered_sprite(world, center + pygame.Vector2(dx, dy),
                                         pygame.Vector2(0, 0), frames[0])
         world.add_component(cannon, CEnemy("cannon", cfg["cannon_points"]))
-        world.add_component(cannon, CBaseCannon(core, frames, destroyed))
+        world.add_component(cannon, CBaseCannon(core, frames, destroyed,
+                                                random.uniform(*cfg["fire"]["cooldown"])))
         cannons.append(cannon)
 
     world.add_component(core, CBase(frame, cannons, cfg["base_points"]))
     return core
+
+
+def create_enemy_bullet(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
+                        center: pygame.Vector2, direction: pygame.Vector2) -> int:
+    """Bala enemiga: sale de `center` hacia `direction` y vive unos segundos."""
+    cfg = enemies_cfg["enemy_bullet"]
+    direction = pygame.Vector2(direction).normalize()
+    texture = _bullet_texture(sprites_cfg, cfg, direction, cfg["tint"])
+    entity = create_centered_sprite(world, center, direction * cfg["speed"], texture, layer=1)
+    world.add_component(entity, CTagEnemyBullet())
+    world.add_component(entity, CLifetime(cfg["lifetime"]))
+    return entity
 
 
 def create_bases(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
@@ -261,10 +276,12 @@ def create_player(world: esper.World, player_cfg: dict, sprites_cfg: dict,
     return entity
 
 
-def _bullet_texture(sprites_cfg: dict, fire_cfg: dict, direction: pygame.Vector2) -> pygame.Surface:
+def _bullet_texture(sprites_cfg: dict, fire_cfg: dict, direction: pygame.Vector2,
+                    tint: tuple | None = None) -> pygame.Surface:
     """Sprite de la bala segun su direccion: vertical, horizontal o diagonal (en espejo).
 
     El atlas solo trae la diagonal "/", asi que la "\\" es esa misma imagen en espejo.
+    `tint` tine la bala (las enemigas usan las mismas imagenes en otro color).
     """
     octant = round(math.degrees(math.atan2(direction.y, direction.x)) / 45) % 8
     names = fire_cfg["bullet_sprites"]
@@ -275,7 +292,8 @@ def _bullet_texture(sprites_cfg: dict, fire_cfg: dict, direction: pygame.Vector2
     else:
         name, flip = names["diagonal"], octant in (1, 5)
     return ServiceLocator.textures_service.get_region(
-        sprites_cfg["sheet"], sprites_cfg["sprites"][name]["rect"], flip_x=flip)
+        sprites_cfg["sheet"], sprites_cfg["sprites"][name]["rect"], flip_x=flip,
+        tint=tuple(tint) if tint else None)
 
 
 def create_bullet(world: esper.World, sprites_cfg: dict, player_cfg: dict, center: pygame.Vector2,

@@ -45,8 +45,8 @@ def system_rendering_panel(
 ) -> None:
     """Dibuja puntajes, condicion, minimapa, vidas como naves y ronda.
 
-    Las bases y formaciones no se crean aqui: cuando existan entidades ECS con
-    CTransform y sus tags, sus marcadores apareceran automaticamente en el radar.
+    Las bases y formaciones no se crean aqui: toda entidad con CTransform y
+    CTagBase o CTagFormation aparece automaticamente en el radar.
     """
     panel_rect = pygame.Rect(
         panel_cfg["x"], panel_cfg["y"], panel_cfg["w"], panel_cfg["h"]
@@ -121,7 +121,7 @@ def system_rendering_panel(
     )
     pygame.draw.rect(screen, map_color, map_rect)
 
-    # Bases y formaciones futuras se incorporan por tags, sin crear entidades aqui.
+    # Bases (nucleo de cada estacion) y formaciones (su lider) se ubican por tags.
     for _, (transform, _) in world.get_components(CTransform, CTagBase):
         marker = _map_position(transform.pos, map_rect, world_size)
         pygame.draw.rect(screen, base_color, (*marker, 2, 2))

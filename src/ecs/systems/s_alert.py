@@ -30,9 +30,9 @@ def system_alert(world: esper.World, enemy_detected: bool = False) -> None:
     """Actualiza la condicion del panel.
 
     RED tiene prioridad y queda activa hasta que system_start_next_round la reinicie.
-    Puede activarse por el limite temporal global o, en el futuro, por el reporte
-    de una nave espia. `enemy_detected` permite integrar enemigos futuros sin
-    acoplar este sistema a una implementacion que todavia no existe.
+    Puede activarse por el limite temporal global o por el reporte de la nave espia.
+    `enemy_detected` (YELLOW) lo calcula la escena con `enemies_near`, asi este
+    sistema no depende de como se mueven los enemigos.
     """
     alert_items = world.get_component(CAlertState)
     if not alert_items:

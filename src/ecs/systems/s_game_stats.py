@@ -36,8 +36,8 @@ def system_add_score(world: esper.World, points: int,
                      save_path: str | None = None) -> None:
     """Suma puntos y persiste el record cuando se supera.
 
-    Los sistemas de colision/eliminacion futuros deben llamar esta funcion
-    cuando otorguen puntos; no se inventan eventos de puntuacion en esta fase.
+    La llama `destroy_enemy` (y el bonus de estaciones y formaciones) con los
+    puntos de cada enemigo.
     """
     amount = int(points)
     if amount <= 0:

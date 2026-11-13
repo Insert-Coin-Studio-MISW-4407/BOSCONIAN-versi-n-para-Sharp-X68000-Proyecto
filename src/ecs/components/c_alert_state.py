@@ -8,6 +8,6 @@ class CAlertState:
 
     def __init__(self) -> None:
         self.condition = self.GREEN
-        # Punto de integracion futuro: se activa cuando la nave espia logra reportar.
+        # Se activa cuando la nave espia logra escapar con su reporte (system_report_spy).
         self.spy_reported = False
         self.red_latched = False

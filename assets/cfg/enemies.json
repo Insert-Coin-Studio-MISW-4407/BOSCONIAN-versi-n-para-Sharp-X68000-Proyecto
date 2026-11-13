@@ -37,6 +37,24 @@
             "cooldown": [1.6, 3.4]
         }
     },
+    "ships": {
+        "I": { "sprite": "enemy_i", "speed": 86, "turn_rate": 100, "points": 50 },
+        "P": { "sprite": "enemy_p", "speed": 98, "turn_rate": 120, "points": 60 },
+        "E": { "sprite": "enemy_e", "speed": 115, "turn_rate": 140, "points": 70 }
+    },
+    "spawner": {
+        "first_delay": 4.0,
+        "interval": [3.0, 5.5],
+        "red_interval": [1.0, 2.2],
+        "max_alive": 6,
+        "spawn_distance": 150,
+        "spawn_ahead_spread": 70,
+        "despawn_distance": 420,
+        "types": ["I", "I", "I", "P", "P", "E"]
+    },
+    "alert": {
+        "detect_radius": 140
+    },
     "enemy_bullet": {
         "speed": 110,
         "lifetime": 1.6,

@@ -16,7 +16,9 @@ from src.ecs.components.c_base_cannon import CBaseCannon
 from src.ecs.components.c_base_core import CBaseCore
 from src.ecs.components.c_blink import CBlink
 from src.ecs.components.c_camera import CCamera
+from src.ecs.components.c_chaser import CChaser
 from src.ecs.components.c_enemy import CEnemy
+from src.ecs.components.c_enemy_spawner import CEnemySpawner
 from src.ecs.components.c_heading import CHeading
 from src.ecs.components.c_alert_state import CAlertState
 from src.ecs.components.c_game_stats import CGameStats
@@ -178,6 +180,30 @@ def create_base(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,
 
     world.add_component(core, CBase(frame, cannons, cfg["base_points"]))
     return core
+
+
+def create_enemy_ship(world: esper.World, sprites_cfg: dict, enemies_cfg: dict, kind: str,
+                      center: pygame.Vector2, target: pygame.Vector2) -> int:
+    """Nave enemiga (tipos I, P, E de enemies.json) que sale rumbo a `target`."""
+    cfg = enemies_cfg["ships"][kind]
+    sprite = sprites_cfg["sprites"][cfg["sprite"]]
+    direction = pygame.Vector2(target) - pygame.Vector2(center)
+    if direction.length_squared() == 0:
+        direction = pygame.Vector2(0, -1)
+    direction.scale_to_length(cfg["speed"])
+    entity = create_centered_sprite(world, center, direction,
+                                    sprite_texture(sprites_cfg, cfg["sprite"]), layer=1)
+    world.add_component(entity, CEnemy("ship", cfg["points"]))
+    world.add_component(entity, CChaser(cfg["speed"], cfg["turn_rate"]))
+    world.add_component(entity, CHeading(direction.normalize()))
+    world.add_component(entity, CRotatingSprite(sprites_cfg["sheet"], sprite["rect"]))
+    return entity
+
+
+def create_enemy_spawner(world: esper.World, enemies_cfg: dict) -> int:
+    entity = world.create_entity()
+    world.add_component(entity, CEnemySpawner(enemies_cfg["spawner"]["first_delay"]))
+    return entity
 
 
 def create_enemy_bullet(world: esper.World, sprites_cfg: dict, enemies_cfg: dict,

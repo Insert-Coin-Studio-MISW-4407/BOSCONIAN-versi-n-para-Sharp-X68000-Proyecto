@@ -2,7 +2,7 @@
 import pygame
 
 from src.create.prefab_creator import (create_alert_state, create_bases, create_camera,
-                                       create_explosion, create_game_stats,
+                                       create_enemy_spawner, create_explosion, create_game_stats,
                                        create_obstacles, create_player, create_player_shot,
                                        create_stage_timer, create_starfield, create_text,
                                        create_triple_shot, sprite_texture, vec)
@@ -18,12 +18,14 @@ from src.ecs.components.c_transform import CTransform
 from src.ecs.components.c_weapon import CWeapon
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.components.tags.c_tag_special_bullet import CTagSpecialBullet
-from src.ecs.systems.s_alert import system_alert
+from src.ecs.systems.s_alert import enemies_near, is_red_alert, system_alert
 from src.ecs.systems.s_animation import system_animation
 from src.ecs.systems.s_base_cannon import system_base_cannon
 from src.ecs.systems.s_base_core import system_base_core
 from src.ecs.systems.s_bullet_offscreen import system_bullet_offscreen
 from src.ecs.systems.s_camera import system_camera
+from src.ecs.systems.s_chaser import system_chaser
+from src.ecs.systems.s_enemy_spawner import system_enemy_spawner
 from src.ecs.systems.s_enemy_hits import system_blast, system_bullet_hits
 from src.ecs.systems.s_game_stats import load_high_score, system_lose_life
 from src.ecs.systems.s_lifetime import system_lifetime
@@ -93,6 +95,7 @@ class PlayScene(Scene):
         create_stage_timer(
             self.ecs_world, self._level_cfg.get("alert_time_limit_seconds", 120))
         create_alert_state(self.ecs_world)
+        create_enemy_spawner(self.ecs_world, engine.enemies_cfg)
 
         # Sprite fijo, sin rotacion, para representar cada vida en el panel.
         player_texture = sprite_texture(engine.sprites_cfg, engine.player_cfg["sprite"])
@@ -215,7 +218,15 @@ class PlayScene(Scene):
             return
         engine = self.engine
         world = self.ecs_world
+        enemies_cfg = engine.enemies_cfg
+        target = self._ship_center()
         system_ship_motion(world, delta_time)
+        heading = self._player_c_h.direction if self._player_entity is not None else None
+        system_enemy_spawner(world, delta_time, target, heading, is_red_alert(world),
+                             engine.sprites_cfg, enemies_cfg)
+        system_chaser(world, delta_time, target, self._world_size,
+                      enemies_cfg["spawner"]["despawn_distance"])
+        # Gira el sprite de todo lo que tenga rumbo: la nave y las naves enemigas
         system_player_sprite(world)
         system_animation(world, delta_time)
         system_invulnerable(world, delta_time)
@@ -241,8 +252,10 @@ class PlayScene(Scene):
 
         # El temporizador es global e independiente de cualquier enemigo.
         system_stage_timer(world, delta_time)
-        # No hay naves enemigas todavia; el parametro permite integrarlas despues.
-        system_alert(world, enemy_detected=False)
+        # YELLOW cuando hay naves enemigas cerca de la nave
+        system_alert(world, enemy_detected=enemies_near(
+            world, self._ship_center(), self._world_size,
+            enemies_cfg["alert"]["detect_radius"]))
 
         self._update_death_flow(delta_time)
 

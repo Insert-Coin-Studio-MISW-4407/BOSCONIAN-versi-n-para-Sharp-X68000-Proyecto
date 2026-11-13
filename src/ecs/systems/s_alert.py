@@ -1,8 +1,28 @@
-"""Calcula GREEN/YELLOW/RED sin implementar enemigos nuevos."""
+"""Calcula GREEN/YELLOW/RED."""
 import esper
+import pygame
 
 from src.ecs.components.c_alert_state import CAlertState
+from src.ecs.components.c_chaser import CChaser
 from src.ecs.components.c_stage_timer import CStageTimer
+from src.ecs.components.c_surface import CSurface
+from src.ecs.components.c_transform import CTransform
+from src.engine.world_math import distance
+
+
+def enemies_near(world: esper.World, target: pygame.Vector2 | None,
+                 world_size: pygame.Vector2, radius: float) -> bool:
+    """True si alguna nave enemiga esta a menos de `radius` de la nave (condicion YELLOW)."""
+    if target is None:
+        return False
+    for _, (_, c_t, c_s) in world.get_components(CChaser, CTransform, CSurface):
+        if distance(c_t.pos + pygame.Vector2(c_s.area.size) / 2, target, world_size) <= radius:
+            return True
+    return False
+
+
+def is_red_alert(world: esper.World) -> bool:
+    return any(alert.condition == CAlertState.RED for _, alert in world.get_component(CAlertState))
 
 
 def system_alert(world: esper.World, enemy_detected: bool = False) -> None:

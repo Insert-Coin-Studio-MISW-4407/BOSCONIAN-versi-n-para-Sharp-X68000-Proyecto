@@ -1,14 +1,17 @@
-"""Escena de juego: el mundo toroidal, la camara, el fondo de estrellas y la nave."""
+"""Escena de juego: el mundo toroidal, la camara, el fondo de estrellas, la nave y los enemigos."""
 import pygame
 
 from src.create.prefab_creator import (create_alert_state, create_bases, create_camera,
-                                       create_game_stats,
+                                       create_explosion, create_game_stats,
                                        create_obstacles, create_player, create_player_shot,
                                        create_stage_timer, create_starfield, create_text,
                                        create_triple_shot, sprite_texture, vec)
+from src.ecs.components.c_blink import CBlink
 from src.ecs.components.c_camera import CCamera
+from src.ecs.components.c_game_stats import CGameStats
 from src.ecs.components.c_heading import CHeading
 from src.ecs.components.c_input_command import CInputCommand, CommandPhase
+from src.ecs.components.c_invulnerable import CInvulnerable
 from src.ecs.components.c_ship_motion import CShipMotion
 from src.ecs.components.c_surface import CSurface
 from src.ecs.components.c_transform import CTransform
@@ -19,13 +22,14 @@ from src.ecs.systems.s_alert import system_alert
 from src.ecs.systems.s_animation import system_animation
 from src.ecs.systems.s_base_cannon import system_base_cannon
 from src.ecs.systems.s_base_core import system_base_core
-from src.ecs.systems.s_lifetime import system_lifetime
 from src.ecs.systems.s_bullet_offscreen import system_bullet_offscreen
 from src.ecs.systems.s_camera import system_camera
 from src.ecs.systems.s_enemy_hits import system_blast, system_bullet_hits
+from src.ecs.systems.s_game_stats import load_high_score, system_lose_life
+from src.ecs.systems.s_lifetime import system_lifetime
 from src.ecs.systems.s_movement import system_movement
+from src.ecs.systems.s_player_hits import system_invulnerable, system_player_hits
 from src.ecs.systems.s_player_sprite import system_player_sprite
-from src.ecs.systems.s_game_stats import load_high_score
 from src.ecs.systems.s_rendering import system_rendering
 from src.ecs.systems.s_rendering_panel import system_rendering_panel
 from src.ecs.systems.s_rendering_stars import system_rendering_stars
@@ -44,6 +48,8 @@ _MOVE_ACTIONS = {
     "PLAYER_DOWN": pygame.Vector2(0, 1),
 }
 
+_MESSAGE_FONT = "assets/fnt/PressStart2P.ttf"
+
 
 class PlayScene(Scene):
     def __init__(self, engine, scene_cfg: dict) -> None:
@@ -53,6 +59,12 @@ class PlayScene(Scene):
         self._pause_text: int | None = None
         self._debug = False
         self._main_weapon_is_triple = False
+        # Nave: None mientras esta explotando o tras el game over
+        self._player_entity: int | None = None
+        self._respawn_timer = 0.0
+        self._respawn_pos = pygame.Vector2(0, 0)
+        self._game_over_timer: float | None = None
+        self._message_text: int | None = None
 
     # --------------------------------------------------------------------- creacion
     def do_create(self) -> None:
@@ -65,14 +77,7 @@ class PlayScene(Scene):
         self._c_camera = self.ecs_world.component_for_entity(camera_entity, CCamera)
         create_starfield(self.ecs_world, world_cfg["stars"], self._c_camera.view)
 
-        self._player_entity = create_player(self.ecs_world, engine.player_cfg,
-                                            engine.sprites_cfg,
-                                            vec(self._level_cfg["player_spawn"]))
-        self._player_c_t = self.ecs_world.component_for_entity(self._player_entity, CTransform)
-        self._player_c_s = self.ecs_world.component_for_entity(self._player_entity, CSurface)
-        self._player_c_h = self.ecs_world.component_for_entity(self._player_entity, CHeading)
-        self._player_c_m = self.ecs_world.component_for_entity(self._player_entity, CShipMotion)
-        self._player_c_w = self.ecs_world.component_for_entity(self._player_entity, CWeapon)
+        self._spawn_player(vec(self._level_cfg["player_spawn"]), invulnerable=False)
 
         # Estado no jugable: puntaje/record, vidas, alerta y limite temporal global.
         self._high_score_path = self._level_cfg.get(
@@ -84,6 +89,7 @@ class PlayScene(Scene):
             self._level_cfg.get("round_number", 1),
             self._high_score_path,
         )
+        self._c_stats = self.ecs_world.component_for_entity(self._game_stats_entity, CGameStats)
         create_stage_timer(
             self.ecs_world, self._level_cfg.get("alert_time_limit_seconds", 120))
         create_alert_state(self.ecs_world)
@@ -107,6 +113,24 @@ class PlayScene(Scene):
         create_obstacles(self.ecs_world, self.engine.sprites_cfg, self.engine.enemies_cfg,
                          obstacles_cfg, self._world_size, occupied)
 
+    def _spawn_player(self, center: pygame.Vector2, invulnerable: bool = True) -> None:
+        """Crea la nave centrada en `center`; al reaparecer parpadea y es invulnerable un rato."""
+        engine = self.engine
+        self._player_entity = create_player(self.ecs_world, engine.player_cfg,
+                                            engine.sprites_cfg, center)
+        world = self.ecs_world
+        self._player_c_t = world.component_for_entity(self._player_entity, CTransform)
+        self._player_c_s = world.component_for_entity(self._player_entity, CSurface)
+        self._player_c_h = world.component_for_entity(self._player_entity, CHeading)
+        self._player_c_m = world.component_for_entity(self._player_entity, CShipMotion)
+        self._player_c_w = world.component_for_entity(self._player_entity, CWeapon)
+        if invulnerable:
+            death_cfg = engine.player_cfg["death"]
+            world.add_component(self._player_entity, CInvulnerable(death_cfg["invulnerable_time"]))
+            world.add_component(self._player_entity, CBlink(death_cfg["blink_interval"],
+                                                            death_cfg["invulnerable_time"]))
+        self._update_input_direction()
+
     # ----------------------------------------------------------- acciones (Command)
     def do_action(self, c_input: CInputCommand) -> None:
         if c_input.name in _MOVE_ACTIONS:
@@ -128,6 +152,8 @@ class PlayScene(Scene):
 
     def _update_input_direction(self) -> None:
         """Direccion que piden las flechas (8 sentidos). El sistema de movimiento la usa."""
+        if self._player_entity is None:
+            return
         # Una accion esta activa si cualquiera de sus teclas esta presionada
         active = {c.name for _, c in self.ecs_world.get_component(CInputCommand)
                   if c.phase == CommandPhase.START}
@@ -138,12 +164,17 @@ class PlayScene(Scene):
             direction.scale_to_length(1)
         self._player_c_m.input_dir = direction
 
-    def _ship_center(self) -> pygame.Vector2:
+    def _ship_center(self) -> pygame.Vector2 | None:
+        if self._player_entity is None:
+            return None
         return self._player_c_t.pos + pygame.Vector2(self._player_c_s.area.size) / 2
+
+    def _can_fire(self) -> bool:
+        return not self._paused and self._player_entity is not None
 
     def _fire(self) -> None:
         """Disparo principal, alternable entre normal y triple para pruebas."""
-        if self._paused:
+        if not self._can_fire():
             return
         if self._main_weapon_is_triple:
             self._fire_triple_cannon(force=True)
@@ -156,7 +187,7 @@ class PlayScene(Scene):
 
     def _fire_triple_cannon(self, force: bool = False) -> None:
         """Cañon triple desbloqueado por nivel, con atajo de prueba opcional."""
-        if self._paused or (not force and not self._level_cfg.get("triple_cannon", False)):
+        if not self._can_fire() or (not force and not self._level_cfg.get("triple_cannon", False)):
             return
         create_triple_shot(self.ecs_world, self.engine.sprites_cfg, self.engine.player_cfg,
                            self._ship_center(), self._player_c_h.direction)
@@ -164,39 +195,82 @@ class PlayScene(Scene):
     def _toggle_pause(self) -> None:
         self._paused = not self._paused
         if self._paused:
-            view = self._c_camera.view
-            self._pause_text = create_text(self.ecs_world, {
-                "text": "PAUSA", "font": "assets/fnt/PressStart2P.ttf", "size": 8,
-                "color": [255, 255, 255], "align": "center", "blink": 0.5,
-                "pos": {"x": view.centerx, "y": view.centery - 32}})
+            self._pause_text = self._create_message("PAUSA", blink=True, dy=-32)
         elif self._pause_text is not None:
             self.ecs_world.delete_entity(self._pause_text)
             self._pause_text = None
+
+    def _create_message(self, text: str, blink: bool = False, dy: int = 0) -> int:
+        """Texto centrado en la vista de juego (pausa, game over...)."""
+        view = self._c_camera.view
+        text_cfg = {"text": text, "font": _MESSAGE_FONT, "size": 8, "color": [255, 255, 255],
+                    "align": "center", "pos": {"x": view.centerx, "y": view.centery + dy}}
+        if blink:
+            text_cfg["blink"] = 0.5
+        return create_text(self.ecs_world, text_cfg)
 
     # ------------------------------------------------------------------ actualizacion
     def do_update(self, delta_time: float) -> None:
         if self._paused:
             return
         engine = self.engine
-        system_ship_motion(self.ecs_world, delta_time)
-        system_player_sprite(self.ecs_world)
-        system_animation(self.ecs_world, delta_time)
-        system_base_core(self.ecs_world, delta_time)
-        system_base_cannon(self.ecs_world, delta_time, self._ship_center(), self._world_size,
+        world = self.ecs_world
+        system_ship_motion(world, delta_time)
+        system_player_sprite(world)
+        system_animation(world, delta_time)
+        system_invulnerable(world, delta_time)
+        system_base_core(world, delta_time)
+        system_base_cannon(world, delta_time, self._ship_center(), self._world_size,
                            engine.sprites_cfg, engine.enemies_cfg)
-        system_lifetime(self.ecs_world, delta_time)
-        system_movement(self.ecs_world, delta_time)
-        system_world_wrap(self.ecs_world, self._world_size)
-        system_camera(self.ecs_world, self._player_entity, self._world_size)
-        system_bullet_hits(self.ecs_world, self._world_size, engine.sprites_cfg, engine.enemies_cfg)
-        system_blast(self.ecs_world, self._world_size, engine.sprites_cfg, engine.enemies_cfg)
-        system_bullet_offscreen(self.ecs_world, self._c_camera, self._world_size)
-        system_stars(self.ecs_world, self._c_camera, delta_time)
+        system_lifetime(world, delta_time)
+        system_movement(world, delta_time)
+        system_world_wrap(world, self._world_size)
+        if self._player_entity is not None:
+            system_camera(world, self._player_entity, self._world_size)
+        else:
+            # Sin nave la camara se queda quieta (y las estrellas tambien)
+            self._c_camera.delta.update(0, 0)
+        system_bullet_hits(world, self._world_size, engine.sprites_cfg, engine.enemies_cfg)
+        blasts = system_blast(world, self._world_size, engine.sprites_cfg, engine.enemies_cfg)
+        if self._player_entity is not None and system_player_hits(
+                world, self._player_entity, self._world_size, blasts,
+                engine.sprites_cfg, engine.enemies_cfg):
+            self._kill_player()
+        system_bullet_offscreen(world, self._c_camera, self._world_size)
+        system_stars(world, self._c_camera, delta_time)
 
         # El temporizador es global e independiente de cualquier enemigo.
-        system_stage_timer(self.ecs_world, delta_time)
-        # No hay enemigos/espia implementados todavia; el parametro permite integrarlos despues.
-        system_alert(self.ecs_world, enemy_detected=False)
+        system_stage_timer(world, delta_time)
+        # No hay naves enemigas todavia; el parametro permite integrarlas despues.
+        system_alert(world, enemy_detected=False)
+
+        self._update_death_flow(delta_time)
+
+    def _kill_player(self) -> None:
+        """La nave explota y se descuenta una vida; sin vidas, termina la partida."""
+        center = self._ship_center()
+        create_explosion(self.ecs_world, self.engine.sprites_cfg, self.engine.enemies_cfg, center)
+        self.ecs_world.delete_entity(self._player_entity)
+        self._player_entity = None
+        system_lose_life(self.ecs_world)
+        death_cfg = self.engine.player_cfg["death"]
+        if self._c_stats.lives <= 0:
+            self._game_over_timer = death_cfg["game_over_delay"]
+            self._message_text = self._create_message("GAME OVER", dy=-40)
+        else:
+            # Como en el original, la nave reaparece donde exploto
+            self._respawn_timer = death_cfg["respawn_delay"]
+            self._respawn_pos = center
+
+    def _update_death_flow(self, delta_time: float) -> None:
+        if self._game_over_timer is not None:
+            self._game_over_timer -= delta_time
+            if self._game_over_timer <= 0:
+                self.switch_scene(self.cfg["back_scene"])
+        elif self._player_entity is None:
+            self._respawn_timer -= delta_time
+            if self._respawn_timer <= 0:
+                self._spawn_player(self._respawn_pos)
 
     # ------------------------------------------------------------------------ dibujo
     def do_draw(self, screen: pygame.Surface) -> None:

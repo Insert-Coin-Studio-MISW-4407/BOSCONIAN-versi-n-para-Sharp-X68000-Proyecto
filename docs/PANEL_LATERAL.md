@@ -23,7 +23,7 @@ El panel muestra:
 | `system_lose_life` | Descuenta una vida sin bajar de cero. |
 | `CStageTimer` / `system_stage_timer` | Cuenta regresiva global independiente de enemigos. |
 | `CAlertState` / `system_alert` | Calcula GREEN/YELLOW/RED y enclava RED. |
-| `system_report_spy` | Punto de integracion futuro para el reporte de una nave espia. |
+| `system_report_spy` | Activa RED cuando la nave espia escapa con su reporte. |
 | `system_start_next_round` | Reinicia temporizador/alerta y actualiza el numero de ronda. |
 | `system_rendering_panel` | Dibuja el panel y el minimapa a partir de los componentes ECS. |
 
@@ -31,18 +31,21 @@ El panel muestra:
 
 1. `RED` tiene prioridad sobre cualquier otro estado.
 2. El temporizador global activa `RED` al llegar a cero, incluso sin enemigos ni nave espia.
-3. Una futura nave espia activa el mismo estado llamando `system_report_spy(world)` cuando consiga reportar.
+3. La nave espia activa el mismo estado llamando `system_report_spy(world)` cuando consigue escapar.
 4. `RED` permanece enclavada hasta que el flujo de ronda llame `system_start_next_round(world, numero, limite)`.
-5. `YELLOW` se puede activar pasando `enemy_detected=True` a `system_alert`. En esta entrega no se crean enemigos, por lo que la escena pasa `False` y el estado normal es `GREEN`.
+5. `YELLOW` se activa cuando hay naves enemigas cerca de la nave (`enemies_near`).
 6. El temporizador se detiene durante la pausa porque `PlayScene.do_update` no ejecuta sistemas mientras esta pausado.
 
-## Integracion futura
+## Integracion con los enemigos
 
-- Al destruir una entidad que otorgue puntos: `system_add_score(world, puntos)`.
-- Al perder una nave: `system_lose_life(world)`.
-- Al detectarse enemigos: llamar `system_alert(world, enemy_detected=True)` desde la integracion del sistema de enemigos.
-- Al escapar la nave espia: `system_report_spy(world)`.
-- Para que bases/formaciones aparezcan en el radar, sus prefabs deben incluir `CTransform` y, respectivamente, `CTagBase` o `CTagFormation`. No se crean esas entidades en esta entrega.
+La rama de enemigos ya usa estos puntos (ver `docs/ENEMIGOS.md`):
+
+- `destroy_enemy` llama `system_add_score` con los puntos de cada enemigo.
+- `PlayScene._kill_player` llama `system_lose_life`.
+- `system_alert` recibe `enemy_detected=enemies_near(...)`: YELLOW con naves enemigas cerca.
+- `system_spy` llama `system_report_spy` cuando la nave espia escapa.
+- El nucleo de cada estacion lleva `CTagBase` y el lider de cada formacion `CTagFormation`.
+- `PlayScene._start_next_round` llama `system_start_next_round` al limpiar la ronda.
 
 ## Persistencia
 

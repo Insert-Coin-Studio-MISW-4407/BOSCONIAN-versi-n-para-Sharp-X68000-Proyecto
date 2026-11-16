@@ -14,10 +14,12 @@ def system_rendering(world: esper.World, screen: pygame.Surface, c_cam: CCamera,
     """Dibuja los sprites convirtiendo coordenadas de mundo a coordenadas de pantalla.
 
     El recorte a la vista evita que una nave se dibuje encima del panel lateral.
+    Se dibuja por capas (`CSurface.layer`): esper no garantiza el orden de las entidades.
     """
     view_size = pygame.Vector2(c_cam.view.size)
     screen.set_clip(c_cam.view)
-    for entity, (c_t, c_s) in world.get_components(CTransform, CSurface):
+    drawables = sorted(world.get_components(CTransform, CSurface), key=lambda item: item[1][1].layer)
+    for entity, (c_t, c_s) in drawables:
         if world.has_component(entity, CTagUI):
             continue
         c_blink = world.try_component(entity, CBlink)

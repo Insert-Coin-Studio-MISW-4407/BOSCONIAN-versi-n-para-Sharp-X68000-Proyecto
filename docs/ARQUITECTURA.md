@@ -70,9 +70,22 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `CStar` | posicion en la vista, color, factor de parallax, temporizador de parpadeo |
 | `CGameStats` | puntuacion, record, vidas, ronda y ruta de persistencia del record |
 | `CStageTimer` | limite y tiempo restante de la ronda; indica si expiro |
-| `CAlertState` | condicion GREEN/YELLOW/RED y enclavamiento de RED; punto futuro para reporte espia |
-| `CTagBase` | identifica bases rastreables en el minimapa (sin prefabs en esta entrega) |
-| `CTagFormation` | identifica formaciones rastreables en el minimapa (sin prefabs en esta entrega) |
+| `CAlertState` | condicion GREEN/YELLOW/RED y enclavamiento de RED; marca si la espia ya reporto |
+| `CTagBase` | marca el nucleo de cada estacion para el minimapa |
+| `CTagFormation` | marca el lider de cada formacion para el minimapa |
+| `CAnimation` | cuadros de una animacion del atlas, tiempo por cuadro, repetir o borrar al terminar |
+| `CEnemy` | lo que las balas del jugador destruyen: tipo, puntos y paleta de explosion |
+| `CBlast` | onda expansiva de una mina (dura un frame) |
+| `CBase` | estacion: estructura, canones, canones vivos y bonus (en la entidad del nucleo) |
+| `CBaseCore` | ciclo abierto/cerrado del nucleo; solo es vulnerable abierto |
+| `CBaseCannon` | canon de estacion: cuadros, chatarra y ciclo reposo/carga/disparo |
+| `CLifetime` | segundos que le quedan a la entidad (balas enemigas) |
+| `CTagEnemyBullet` | marca las balas enemigas |
+| `CInvulnerable` | la nave no puede morir durante unos segundos (al reaparecer) |
+| `CChaser` | velocidad, giro maximo y direcciones del sprite de una nave que persigue |
+| `CEnemySpawner` | temporizadores de la proxima nave/formacion y de la proxima espia, escala por ronda |
+| `CFormationLeader` / `CFormationMember` | lider con sus escoltas y bonus / puesto de cada escolta |
+| `CSpy` | estado de la nave espia (acercarse, observar, huir) |
 
 ## Sistemas
 
@@ -91,11 +104,21 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `system_weapon_cooldown` | descuenta la recarga del disparo especial |
 | `system_stars` | parallax y parpadeo de las estrellas |
 | `system_rendering_stars` | dibuja las estrellas visibles |
-| `system_rendering` | dibuja sprites de mundo recortados a la vista |
+| `system_rendering` | dibuja sprites de mundo recortados a la vista, ordenados por `CSurface.layer` |
+| `system_animation` | avanza los cuadros de `CAnimation`; borra las explosiones al terminar |
+| `system_lifetime` | borra las entidades cuyo `CLifetime` se agoto |
+| `system_base_core` | ciclo del nucleo de las estaciones |
+| `system_base_cannon` | los canones cargan y disparan a la nave cuando esta a su alcance |
+| `system_enemy_spawner` / `system_spy_spawner` | lanzan naves, formaciones y espias en el camino de la nave |
+| `system_chaser` | las naves giran hacia la nave con giro limitado; las lejanas se retiran |
+| `system_formation` | las escoltas siguen a su lider; si cae, persiguen por su cuenta |
+| `system_spy` | la espia observa y huye; si escapa llama a `system_report_spy` |
+| `system_bullet_hits` / `system_blast` | balas del jugador y ondas de minas contra enemigos (`destroy_enemy`) |
+| `system_player_hits` / `system_invulnerable` | choques y balas que matan a la nave / fin de la invulnerabilidad |
 | `system_rendering_panel` | dibuja puntaje, record, vidas, temporizador, alerta y minimapa en el panel derecho |
 | `system_stage_timer` | descuenta el limite global de la ronda, tambien cuando no hay enemigos |
-| `system_alert` | prioriza y enclava RED; admite YELLOW mediante deteccion futura de enemigos |
-| `system_report_spy` | punto de integracion para activar RED cuando una futura nave espia reporte |
+| `system_alert` | prioriza y enclava RED; YELLOW con naves enemigas cerca (`enemies_near`) |
+| `system_report_spy` | activa y enclava RED cuando la nave espia escapa |
 | `system_add_score` / `system_lose_life` | actualiza puntuacion/record y vidas |
 | `system_start_next_round` | reinicia temporizador/alerta y cambia el numero de ronda |
 
@@ -103,7 +126,7 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 
 | Servicio | Recurso |
 |---|---|
-| `TextureService` | imagenes y recortes del atlas (con espejo y giro opcionales), cargados una sola vez |
+| `TextureService` | imagenes y recortes del atlas (con espejo, giro y tinte opcionales; recortes con fondo transparente), cargados una sola vez |
 | `SoundService` | efectos; tolera archivos ausentes |
 | `MusicService` | musica en streaming; no reinicia la pista si ya suena |
 | `FontService` | TTF o fuentes de mapa de bits |
@@ -118,8 +141,14 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `input.json` | mapeo accion -> teclas |
 | `scenes.json` | escena inicial y definicion de cada escena |
 | `world.json` | tamano del mundo y capas, colores y parpadeo de las estrellas |
-| `sprites.json` | recortes de la hoja de sprites del curso |
-| `player.json` | movimiento (`max_speed`, `acceleration`, `cruise_speed`) y disparos (`fire`) de la nave |
+| `sprites.json` | recortes de la hoja de sprites del curso (`frames` para animaciones) |
+| `enemies.json` | explosiones, asteroides, minas, estaciones, naves, formaciones, espia, generador y alerta |
+| `player.json` | movimiento (`max_speed`, `acceleration`, `cruise_speed`), disparos (`fire`) y muerte (`death`) de la nave |
 | `window.json > layout.panel.hud` | tipografia y paleta de colores del panel/minimapa |
 | `level_XX.json` | incluye `starting_lives`, `round_number`, `alert_time_limit_seconds` y `high_score_path` |
 | `level_XX.json` | contenido de cada nivel, incluido el desbloqueo del cañon triple (`triple_cannon`) |
+| `level_XX.json` | `bases` (posiciones de las estaciones), `obstacles` (asteroides y minas) y `rounds` (paso de ronda) |
+
+## Enemigos
+
+Detalle de cada enemigo, sus colisiones y el flujo de vidas y rondas en `docs/ENEMIGOS.md`.

@@ -13,5 +13,11 @@
             "horizontal": "bullet_horizontal",
             "diagonal": "bullet_diagonal"
         }
+    },
+    "death": {
+        "respawn_delay": 2.0,
+        "invulnerable_time": 2.5,
+        "blink_interval": 0.1,
+        "game_over_delay": 3.0
     }
 }

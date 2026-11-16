@@ -33,6 +33,12 @@ python main.py
 
 Todas las teclas se configuran en `assets/cfg/input.json`.
 
+## Enemigos
+
+Estaciones con seis canones y nucleo, asteroides, minas cosmicas, naves tipo I/P/E,
+formaciones con lider y la nave espia que activa la condicion RED. Destruye todas las
+estaciones para pasar de ronda. Detalle en `docs/ENEMIGOS.md`.
+
 ## Resolucion
 
 256x208 nativos (`assets/cfg/window.json`). La ventana usa `pygame.SCALED`, asi que

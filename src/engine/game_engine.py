@@ -52,6 +52,7 @@ class GameEngine:
         self.sprites_cfg = self.load_cfg("sprites.json")
         self.world_cfg = self.load_cfg("world.json")
         self.player_cfg = self.load_cfg("player.json")
+        self.enemies_cfg = self.load_cfg("enemies.json")
 
     @staticmethod
     def load_cfg(name: str) -> dict:

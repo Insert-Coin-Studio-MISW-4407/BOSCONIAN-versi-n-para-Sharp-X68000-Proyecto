@@ -120,7 +120,7 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `system_alert` | prioriza y enclava RED; YELLOW con naves enemigas cerca (`enemies_near`) |
 | `system_report_spy` | activa y enclava RED cuando la nave espia escapa |
 | `system_add_score` / `system_lose_life` | actualiza puntuacion/record y vidas |
-| `system_start_next_round` | reinicia temporizador/alerta y cambia el numero de ronda |
+| `system_start_next_round` | reinicia temporizador/alerta y cambia el numero de nivel |
 
 ## Servicios (Service Locator)
 

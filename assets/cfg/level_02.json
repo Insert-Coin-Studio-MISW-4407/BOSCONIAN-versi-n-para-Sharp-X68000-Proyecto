@@ -1,0 +1,29 @@
+{
+    "name": "LEVEL 2",
+    "player_spawn": { "x": 768, "y": 768 },
+    "triple_cannon": false,
+    "round_number": 2,
+    "starting_lives": 3,
+    "alert_time_limit_seconds": 110,
+    "high_score_path": "save/high_score.json",
+    "bases": [
+        { "x": 220, "y": 220 },
+        { "x": 1320, "y": 260 },
+        { "x": 760, "y": 420 },
+        { "x": 300, "y": 1120 },
+        { "x": 1220, "y": 1080 },
+        { "x": 1450, "y": 700 }
+    ],
+    "rounds": {
+        "clear_delay": 3.0,
+        "banner_time": 2.0,
+        "interval_scale": 0.82,
+        "min_interval_scale": 0.45
+    },
+    "obstacles": {
+        "asteroids": 55,
+        "mines": 20,
+        "min_spacing": 28,
+        "player_safe_radius": 96
+    }
+}

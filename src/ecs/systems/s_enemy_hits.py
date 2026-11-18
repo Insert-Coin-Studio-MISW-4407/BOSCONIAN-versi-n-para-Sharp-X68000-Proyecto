@@ -14,6 +14,8 @@ from src.ecs.components.c_transform import CTransform
 from src.ecs.components.tags.c_tag_player_bullet import CTagPlayerBullet
 from src.ecs.systems.s_game_stats import system_add_score
 from src.engine.collision import collide_world
+from src.engine.service_locator import ServiceLocator
+from src.engine.services.sound_service import SOUND_EXPLOSION
 from src.engine.world_math import distance
 
 # Lo que una onda expansiva puede destruir (las piezas de las estaciones la resisten)
@@ -74,6 +76,7 @@ def destroy_enemy(world: esper.World, entity: int, sprites_cfg: dict,
     system_blast el mismo frame. Las piezas de las estaciones tienen reglas propias.
     """
     c_e = world.component_for_entity(entity, CEnemy)
+    ServiceLocator.sounds_service.play(SOUND_EXPLOSION)
     if c_e.kind == "cannon":
         _destroy_cannon(world, entity, sprites_cfg, enemies_cfg)
         return

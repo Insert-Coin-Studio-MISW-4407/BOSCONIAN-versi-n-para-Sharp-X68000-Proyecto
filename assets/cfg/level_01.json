@@ -1,7 +1,7 @@
 {
     "name": "ROUND 1",
     "player_spawn": { "x": 768, "y": 768 },
-    "triple_cannon": true,
+    "triple_cannon": false,
     "round_number": 1,
     "starting_lives": 3,
     "alert_time_limit_seconds": 120,

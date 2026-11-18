@@ -27,6 +27,7 @@
         "LEVEL_01": {
             "type": "PLAY",
             "level": "level_01.json",
+            "levels": ["level_01.json", "level_02.json", "level_03.json"],
             "music": "assets/mus/starshooterv2.1.ogg",
             "back_scene": "MENU"
         },
@@ -39,12 +40,10 @@
                   "pos": { "x": 24, "y": 48 } },
                 { "text": "Z        DISPARAR", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
                   "pos": { "x": 24, "y": 64 } },
-                { "text": "X        ESPECIAL", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
-                  "pos": { "x": 24, "y": 80 } },
                 { "text": "P        PAUSA", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
-                  "pos": { "x": 24, "y": 96 } },
+                  "pos": { "x": 24, "y": 80 } },
                 { "text": "ESC      VOLVER", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [255, 255, 255],
-                  "pos": { "x": 24, "y": 112 } },
+                  "pos": { "x": 24, "y": 96 } },
                 { "text": "DESTRUYE TODAS", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],
                   "pos": { "x": 128, "y": 144 }, "align": "center" },
                 { "text": "LAS ESTACIONES", "font": "assets/fnt/PressStart2P.ttf", "size": 8, "color": [0, 255, 255],

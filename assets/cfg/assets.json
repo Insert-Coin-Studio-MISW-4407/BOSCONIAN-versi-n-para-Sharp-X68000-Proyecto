@@ -3,7 +3,12 @@
         "assets/img/titulo.png",
         "assets/img/naves.png"
     ],
-    "sounds": [],
+    "sounds": [
+        "assets/sfx/01_disparo_laser.ogg",
+        "assets/sfx/02_explosion.ogg",
+        "assets/sfx/03_victoria_nivel.ogg",
+        "assets/sfx/04_game_over.ogg"
+    ],
     "fonts": [
         {
             "path": "assets/fnt/PressStart2P.ttf",

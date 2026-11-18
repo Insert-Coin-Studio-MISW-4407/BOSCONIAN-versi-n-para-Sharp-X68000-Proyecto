@@ -6,7 +6,7 @@ import pygame
 
 from src.engine.scenes.play_scene import PlayScene
 from src.engine.scenes.text_scene import TextScene
-from src.engine.service_locator import preload_assets
+from src.engine.service_locator import ServiceLocator, preload_assets
 
 _CFG = "assets/cfg/"
 
@@ -24,6 +24,7 @@ class GameEngine:
 
         pygame.init()
         self._init_mixer()
+        ServiceLocator.sounds_service.set_default_volume(self.audio_cfg["sfx_volume"])
         pygame.display.set_caption(self.window_cfg["title"])
         # SCALED: la ventana se agranda pero el juego sigue dibujando a resolucion nativa
         self.screen = pygame.display.set_mode(

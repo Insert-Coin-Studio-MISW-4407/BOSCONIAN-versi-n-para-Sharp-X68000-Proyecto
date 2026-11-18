@@ -90,7 +90,7 @@ def system_rendering_panel(
     current_score = stats.score if stats else 0
     high_score = stats.high_score if stats else 0
     lives = stats.lives if stats else 0
-    round_number = stats.round_number if stats else 1
+    level_number = stats.round_number if stats else 1
 
     # Puntajes: etiquetas a la izquierda y valores alineados a la derecha.
     _draw_left(screen, font, "HI-SCORE", left, top + 9, high_score_color)
@@ -149,6 +149,6 @@ def system_rendering_panel(
                 (ship_x + index * (ship_width + 5), ship_y),
             )
 
-    # Ronda: etiqueta a la izquierda y valor pegado al borde derecho.
-    _draw_left(screen, font, "ROUND", left, top + 185, text_color)
-    _draw_right(screen, value_font, str(round_number), right, top + 185, text_color)
+    # Nivel: etiqueta a la izquierda y valor pegado al borde derecho.
+    _draw_left(screen, font, "LEVEL", left, top + 185, text_color)
+    _draw_right(screen, value_font, str(level_number), right, top + 185, text_color)

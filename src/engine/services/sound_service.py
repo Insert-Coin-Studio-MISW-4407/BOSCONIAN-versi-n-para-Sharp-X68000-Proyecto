@@ -9,21 +9,30 @@ import pygame
 
 # Para web (pygbag) el formato soportado es .ogg; .wav se acepta solo en escritorio
 _EXTENSIONS = (".ogg", ".wav")
+SOUND_FIRE = "assets/sfx/01_disparo_laser.ogg"
+SOUND_EXPLOSION = "assets/sfx/02_explosion.ogg"
+SOUND_LEVEL_CLEAR = "assets/sfx/03_victoria_nivel.ogg"
+SOUND_GAME_OVER = "assets/sfx/04_game_over.ogg"
 
 
 class SoundService:
     def __init__(self) -> None:
         self._sounds: dict[str, pygame.mixer.Sound | None] = {}
+        self._default_volume = 1.0
+
+    def set_default_volume(self, volume: float) -> None:
+        """Define el volumen usado por los efectos que no especifican uno propio."""
+        self._default_volume = max(0.0, min(1.0, float(volume)))
 
     def get(self, path: str) -> pygame.mixer.Sound | None:
         if path not in self._sounds:
             self._sounds[path] = self._load(path)
         return self._sounds[path]
 
-    def play(self, path: str, volume: float = 1.0) -> None:
+    def play(self, path: str, volume: float | None = None) -> None:
         sound = self.get(path)
         if sound is not None:
-            sound.set_volume(volume)
+            sound.set_volume(self._default_volume if volume is None else volume)
             sound.play()
 
     def _load(self, path: str) -> pygame.mixer.Sound | None:

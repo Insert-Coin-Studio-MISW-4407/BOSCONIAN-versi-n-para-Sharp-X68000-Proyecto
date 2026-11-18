@@ -47,6 +47,9 @@ from src.ecs.systems.s_stage_timer import system_stage_timer, system_start_next_
 from src.ecs.systems.s_stars import system_stars
 from src.ecs.systems.s_world_wrap import system_world_wrap
 from src.engine.scenes.scene import Scene
+from src.engine.services.sound_service import (SOUND_EXPLOSION, SOUND_FIRE,
+                                                SOUND_GAME_OVER, SOUND_LEVEL_CLEAR)
+from src.engine.service_locator import ServiceLocator
 from src.engine.world_math import world_to_screen
 
 # Direccion en la que cada accion de movimiento empuja a la nave
@@ -63,7 +66,9 @@ _MESSAGE_FONT = "assets/fnt/PressStart2P.ttf"
 class PlayScene(Scene):
     def __init__(self, engine, scene_cfg: dict) -> None:
         super().__init__(engine, scene_cfg)
-        self._level_cfg = engine.load_cfg(scene_cfg["level"])
+        self._level_paths = scene_cfg.get("levels") or [scene_cfg["level"]]
+        self._level_index = 0
+        self._level_cfg = engine.load_cfg(self._level_paths[self._level_index])
         self._paused = False
         self._pause_text: int | None = None
         self._debug = False
@@ -157,8 +162,6 @@ class PlayScene(Scene):
             self._debug = not self._debug
         elif c_input.name == "PLAYER_FIRE":
             self._fire()
-        elif c_input.name == "PLAYER_TRIPLE_CANNON":
-            self._fire_triple_cannon()
         elif c_input.name == "PLAYER_TOGGLE_MAIN_WEAPON":
             self._main_weapon_is_triple = not self._main_weapon_is_triple
 
@@ -190,12 +193,14 @@ class PlayScene(Scene):
             return
         if self._main_weapon_is_triple:
             self._fire_triple_cannon(force=True)
+            ServiceLocator.sounds_service.play(SOUND_FIRE)
             return
         alive = (len(self.ecs_world.get_component(CTagPlayerBullet))
                  - len(self.ecs_world.get_component(CTagSpecialBullet)))
         if alive + 2 <= self._player_c_w.max_bullets:
             create_player_shot(self.ecs_world, self.engine.sprites_cfg, self.engine.player_cfg,
                                self._ship_center(), self._player_c_h.direction)
+            ServiceLocator.sounds_service.play(SOUND_FIRE)
 
     def _fire_triple_cannon(self, force: bool = False) -> None:
         """Cañon triple desbloqueado por nivel, con atajo de prueba opcional."""
@@ -280,7 +285,7 @@ class PlayScene(Scene):
         self._update_message(delta_time)
 
     def _show_message(self, text: str, seconds: float | None = None) -> None:
-        """Mensaje central unico (GAME OVER, ROUND CLEAR...); `seconds` None = permanente."""
+        """Mensaje central unico (GAME OVER, LEVEL CLEAR...); `seconds` None = permanente."""
         if self._message_text is not None:
             self.ecs_world.delete_entity(self._message_text)
         self._message_text = self._create_message(text, dy=-40)
@@ -299,12 +304,14 @@ class PlayScene(Scene):
         """La nave explota y se descuenta una vida; sin vidas, termina la partida."""
         center = self._ship_center()
         create_explosion(self.ecs_world, self.engine.sprites_cfg, self.engine.enemies_cfg, center)
+        ServiceLocator.sounds_service.play(SOUND_EXPLOSION)
         self.ecs_world.delete_entity(self._player_entity)
         self._player_entity = None
         system_lose_life(self.ecs_world)
         death_cfg = self.engine.player_cfg["death"]
         if self._c_stats.lives <= 0:
             self._game_over_timer = death_cfg["game_over_delay"]
+            ServiceLocator.sounds_service.play(SOUND_GAME_OVER)
             self._show_message("GAME OVER")
         else:
             # Como en el original, la nave reaparece donde exploto
@@ -326,7 +333,8 @@ class PlayScene(Scene):
         """Todas las estaciones cayeron: la nave queda a salvo hasta la ronda siguiente."""
         rounds_cfg = self._level_cfg["rounds"]
         self._round_clear_timer = rounds_cfg["clear_delay"]
-        self._show_message("ROUND CLEAR")
+        ServiceLocator.sounds_service.play(SOUND_LEVEL_CLEAR)
+        self._show_message("LEVEL CLEAR")
         if self._player_entity is not None:
             self.ecs_world.add_component(self._player_entity,
                                          CInvulnerable(rounds_cfg["clear_delay"] + 1))
@@ -337,24 +345,26 @@ class PlayScene(Scene):
         self._round_clear_timer -= delta_time
         if self._round_clear_timer <= 0:
             self._round_clear_timer = None
-            self._start_next_round()
+            self._start_next_level()
 
-    def _start_next_round(self) -> None:
-        """Limpia el mundo, vuelve a poblarlo y deja la nave en el punto de partida.
+    def _start_next_level(self) -> None:
+        """Cicla los mapas, incrementa el nivel y conserva el progreso de la partida.
 
         Se conservan puntaje, record y vidas; el temporizador y la alerta se reinician
-        y los enemigos aparecen un poco mas seguido en cada ronda.
+        y los enemigos aparecen un poco mas seguido en cada nivel.
         """
         world = self.ecs_world
-        rounds_cfg = self._level_cfg["rounds"]
         for component in (CEnemy, CTagEnemyBullet, CTagPlayerBullet, CTagPlayer):
             for entity, _ in world.get_component(component):
                 world.delete_entity(entity)
         self._player_entity = None
 
-        round_number = self._c_stats.round_number + 1
-        system_start_next_round(world, round_number,
-                                self._level_cfg.get("alert_time_limit_seconds", 120))
+        self._level_index = (self._level_index + 1) % len(self._level_paths)
+        self._level_cfg = self.engine.load_cfg(self._level_paths[self._level_index])
+        level_number = self._c_stats.round_number + 1
+        system_start_next_round(world, level_number,
+                               self._level_cfg.get("alert_time_limit_seconds", 120))
+        rounds_cfg = self._level_cfg["rounds"]
         spawner_cfg = self.engine.enemies_cfg["spawner"]
         for _, c_sp in world.get_component(CEnemySpawner):
             c_sp.timer = spawner_cfg["first_delay"]
@@ -366,7 +376,7 @@ class PlayScene(Scene):
         self._spawn_player(vec(self._level_cfg["player_spawn"]))
         system_camera(world, self._player_entity, self._world_size)
         self._c_camera.delta.update(0, 0)
-        self._show_message(f"ROUND {round_number}", rounds_cfg["banner_time"])
+        self._show_message(f"LEVEL {level_number}", rounds_cfg["banner_time"])
 
     # ------------------------------------------------------------------------ dibujo
     def do_draw(self, screen: pygame.Surface) -> None:

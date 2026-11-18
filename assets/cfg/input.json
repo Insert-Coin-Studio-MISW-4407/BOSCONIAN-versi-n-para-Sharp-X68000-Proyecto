@@ -5,7 +5,6 @@
         { "name": "PLAYER_UP",      "device": "KEYBOARD", "keys": ["up"] },
         { "name": "PLAYER_DOWN",    "device": "KEYBOARD", "keys": ["down"] },
         { "name": "PLAYER_FIRE",    "device": "KEYBOARD", "keys": ["z"] },
-        { "name": "PLAYER_TRIPLE_CANNON", "device": "KEYBOARD", "keys": ["x"] },
         { "name": "PLAYER_TOGGLE_MAIN_WEAPON", "device": "KEYBOARD", "keys": ["u"] },
         { "name": "GAME_START",     "device": "KEYBOARD", "keys": ["return", "z"] },
         { "name": "GAME_PAUSE",     "device": "KEYBOARD", "keys": ["p"] },

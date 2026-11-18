@@ -19,7 +19,6 @@ python main.py
 |---|---|
 | Mover | Flechas |
 | Disparar / Start | Z (o Enter en menus) |
-| Cañon triple (si esta desbloqueado) | X |
 | Alternar disparo principal normal/triple (pruebas) | U |
 | Pausa | P |
 | Volver / salir | ESC |
@@ -37,7 +36,8 @@ Todas las teclas se configuran en `assets/cfg/input.json`.
 
 Estaciones con seis canones y nucleo, asteroides, minas cosmicas, naves tipo I/P/E,
 formaciones con lider y la nave espia que activa la condicion RED. Destruye todas las
-estaciones para pasar de ronda. Detalle en `docs/ENEMIGOS.md`.
+estaciones para pasar de nivel. Los tres mapas se recorren en bucle con un numero de
+nivel creciente. Detalle en `docs/ENEMIGOS.md`.
 
 ## Resolucion
 

@@ -1,8 +1,8 @@
 # Enemigos
 
 Replica de los enemigos de Bosconian con los recursos del curso (`assets/img/naves.png`).
-Todos los numeros estan en `assets/cfg/enemies.json` y la distribucion del nivel en
-`assets/cfg/level_01.json`.
+Todos los numeros estan en `assets/cfg/enemies.json` y la distribucion de los niveles en
+`assets/cfg/level_01.json`, `assets/cfg/level_02.json` y `assets/cfg/level_03.json`.
 
 ## Resumen
 
@@ -35,7 +35,7 @@ los canones y del nucleo, que son entidades aparte encima de la estructura:
 
 - `system_enemy_spawner` las lanza fuera de pantalla **en el camino de la nave** (la nave del
   jugador nunca se detiene; si salieran por detras casi no la alcanzarian). En RED salen mas
-  seguido y hay mas formaciones. Hay un maximo de naves vivas y cada ronda el intervalo baja.
+  seguido y hay mas formaciones. Hay un maximo de naves vivas y cada nivel el intervalo baja.
 - `system_chaser` gira el rumbo hacia la nave como mucho `turn_rate` grados por segundo: se
   pasan de largo y hay que esquivarlas. El sprite mira en 16 direcciones como en el arcade.
 - Las que quedan a mas de `spawner.despawn_distance` se retiran.
@@ -51,7 +51,7 @@ por su cuenta.
 
 `CSpy` + `system_spy`: se acerca (APPROACH), da vueltas alrededor de la nave durante
 `report_time` (WATCH) y huye mas rapido que la nave (FLEE). Si se aleja mas de
-`escape_distance` llama a `system_report_spy` y la condicion queda en RED hasta la ronda
+`escape_distance` llama a `system_report_spy` y la condicion queda en RED hasta el nivel
 siguiente. Aparece cada `spy.interval` segundos y nunca hay dos a la vez.
 
 ## Colisiones
@@ -66,12 +66,13 @@ siguiente. Aparece cada `spy.interval` segundos y nunca hay dos a la vez.
 Todas las pruebas usan `collide_world` / `distance`, que miden por el camino mas corto del
 mundo toroidal.
 
-## Vidas y rondas
+## Vidas y niveles
 
 - Cada muerte descuenta una vida; la nave reaparece donde exploto, parpadeando e
   invulnerable (`player.json > death`). Sin vidas: GAME OVER y vuelta al menu.
-- Sin estaciones en pie: ROUND CLEAR, se limpia y repuebla el mundo y arranca la ronda
-  siguiente con `system_start_next_round` (`level_01.json > rounds`).
+- Sin estaciones en pie: LEVEL CLEAR, se limpia y repuebla el mundo y arranca el nivel
+  siguiente con el siguiente archivo de `scenes.json > LEVEL_01 > levels`. Tras el tercero,
+  la secuencia vuelve a `level_01.json` y el numero mostrado continua creciendo.
 
 ## Alerta
 

@@ -24,7 +24,7 @@ El panel muestra:
 | `CStageTimer` / `system_stage_timer` | Cuenta regresiva global independiente de enemigos. |
 | `CAlertState` / `system_alert` | Calcula GREEN/YELLOW/RED y enclava RED. |
 | `system_report_spy` | Activa RED cuando la nave espia escapa con su reporte. |
-| `system_start_next_round` | Reinicia temporizador/alerta y actualiza el numero de ronda. |
+| `system_start_next_round` | Reinicia temporizador/alerta y actualiza el numero de nivel. |
 | `system_rendering_panel` | Dibuja el panel y el minimapa a partir de los componentes ECS. |
 
 ## Reglas de alerta
@@ -32,7 +32,7 @@ El panel muestra:
 1. `RED` tiene prioridad sobre cualquier otro estado.
 2. El temporizador global activa `RED` al llegar a cero, incluso sin enemigos ni nave espia.
 3. La nave espia activa el mismo estado llamando `system_report_spy(world)` cuando consigue escapar.
-4. `RED` permanece enclavada hasta que el flujo de ronda llame `system_start_next_round(world, numero, limite)`.
+4. `RED` permanece enclavada hasta que el flujo de nivel llame `system_start_next_round(world, numero, limite)`.
 5. `YELLOW` se activa cuando hay naves enemigas cerca de la nave (`enemies_near`).
 6. El temporizador se detiene durante la pausa porque `PlayScene.do_update` no ejecuta sistemas mientras esta pausado.
 
@@ -45,7 +45,7 @@ La rama de enemigos ya usa estos puntos (ver `docs/ENEMIGOS.md`):
 - `system_alert` recibe `enemy_detected=enemies_near(...)`: YELLOW con naves enemigas cerca.
 - `system_spy` llama `system_report_spy` cuando la nave espia escapa.
 - El nucleo de cada estacion lleva `CTagBase` y el lider de cada formacion `CTagFormation`.
-- `PlayScene._start_next_round` llama `system_start_next_round` al limpiar la ronda.
+- `PlayScene._start_next_level` llama `system_start_next_round` y carga el siguiente mapa.
 
 ## Persistencia
 
@@ -55,6 +55,6 @@ El record se carga desde `save/high_score.json` al entrar a la escena y se guard
 
 - `assets/cfg/window.json > layout.panel.hud`: fuente, tamanos y paleta del panel.
 - `assets/cfg/level_01.json > starting_lives`: vidas iniciales.
-- `assets/cfg/level_01.json > round_number`: numero inicial de ronda.
+- `assets/cfg/level_01.json > round_number`: numero inicial del nivel mostrado.
 - `assets/cfg/level_01.json > alert_time_limit_seconds`: limite temporal global.
 - `assets/cfg/level_01.json > high_score_path`: ruta del record.

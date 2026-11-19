@@ -6,6 +6,8 @@ puede calcular con una resta simple, hay que tomar siempre el camino mas corto.
 Las funciones de un eje (`*_1d`) son las del cilindro de Defender; las de vector
 las aplican en x y en y.
 """
+from __future__ import annotations
+
 import pygame
 
 

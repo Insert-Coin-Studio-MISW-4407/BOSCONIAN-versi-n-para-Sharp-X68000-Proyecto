@@ -4,6 +4,8 @@ Es el unico lugar que sabe que componentes forman cada tipo de entidad del juego
 toma todos los numeros de los archivos de configuracion. Las texturas se piden al
 Service Locator, nunca se cargan aqui.
 """
+from __future__ import annotations
+
 import math
 import random
 

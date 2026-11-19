@@ -1,4 +1,6 @@
 """Escena de juego: el mundo toroidal, la camara, el fondo de estrellas, la nave y los enemigos."""
+from __future__ import annotations
+
 import pygame
 
 from src.create.prefab_creator import (create_alert_state, create_bases, create_camera,
@@ -72,7 +74,7 @@ class PlayScene(Scene):
         self._paused = False
         self._pause_text: int | None = None
         self._debug = False
-        self._main_weapon_is_triple = False
+        self._main_weapon_is_triple = bool(self._level_cfg.get("triple_cannon", False))
         # Nave: None mientras esta explotando o tras el game over
         self._player_entity: int | None = None
         self._respawn_timer = 0.0
@@ -101,7 +103,7 @@ class PlayScene(Scene):
         self._game_stats_entity = create_game_stats(
             self.ecs_world,
             load_high_score(self._high_score_path),
-            self._level_cfg.get("starting_lives", 3),
+            getattr(engine, "game_cfg", {}).get("starting_lives", 3),
             self._level_cfg.get("round_number", 1),
             self._high_score_path,
         )
@@ -361,6 +363,7 @@ class PlayScene(Scene):
 
         self._level_index = (self._level_index + 1) % len(self._level_paths)
         self._level_cfg = self.engine.load_cfg(self._level_paths[self._level_index])
+        self._main_weapon_is_triple = bool(self._level_cfg.get("triple_cannon", False))
         level_number = self._c_stats.round_number + 1
         system_start_next_round(world, level_number,
                                self._level_cfg.get("alert_time_limit_seconds", 120))

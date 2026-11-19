@@ -3,6 +3,8 @@
 Tolera archivos ausentes: devuelve None y el sistema que lo pide simplemente no suena.
 Esto permite trabajar sin los .ogg definitivos sin romper el juego ni la exportacion web.
 """
+from __future__ import annotations
+
 import os
 
 import pygame

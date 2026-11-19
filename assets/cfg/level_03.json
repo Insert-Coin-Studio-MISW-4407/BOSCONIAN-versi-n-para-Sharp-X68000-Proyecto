@@ -3,7 +3,6 @@
     "player_spawn": { "x": 768, "y": 768 },
     "triple_cannon": true,
     "round_number": 3,
-    "starting_lives": 3,
     "alert_time_limit_seconds": 100,
     "high_score_path": "save/high_score.json",
     "bases": [

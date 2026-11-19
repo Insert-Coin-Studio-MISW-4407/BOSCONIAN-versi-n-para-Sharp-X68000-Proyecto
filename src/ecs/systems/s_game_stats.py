@@ -1,4 +1,6 @@
 """Sistemas de puntuacion y vidas, separados de la presentacion del HUD."""
+from __future__ import annotations
+
 import json
 import os
 

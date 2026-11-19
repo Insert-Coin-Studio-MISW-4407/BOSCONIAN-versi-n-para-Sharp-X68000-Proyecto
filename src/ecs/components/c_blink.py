@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class CBlink:
     """Game feel: parpadeo de una entidad (textos de "pulsa start", invulnerabilidad).
 

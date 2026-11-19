@@ -1,4 +1,6 @@
 """Motor del juego: patron Game Loop + gestor de escenas."""
+from __future__ import annotations
+
 import asyncio
 import json
 
@@ -54,6 +56,7 @@ class GameEngine:
         self.world_cfg = self.load_cfg("world.json")
         self.player_cfg = self.load_cfg("player.json")
         self.enemies_cfg = self.load_cfg("enemies.json")
+        self.game_cfg = self.load_cfg("game.json")
 
     @staticmethod
     def load_cfg(name: str) -> dict:

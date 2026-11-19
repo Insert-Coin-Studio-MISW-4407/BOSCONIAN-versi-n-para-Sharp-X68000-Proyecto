@@ -1,4 +1,6 @@
 """Calcula GREEN/YELLOW/RED."""
+from __future__ import annotations
+
 import esper
 import pygame
 

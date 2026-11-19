@@ -4,6 +4,8 @@ Los recursos del curso vienen en una sola hoja (atlas). `get_region` devuelve un
 recorte de esa hoja, tambien cacheado, asi todas las entidades del mismo tipo
 comparten la misma superficie.
 """
+from __future__ import annotations
+
 import pygame
 
 

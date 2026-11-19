@@ -1,4 +1,6 @@
 """Renderizado del panel lateral siguiendo la referencia visual de Bosconian."""
+from __future__ import annotations
+
 import esper
 import pygame
 

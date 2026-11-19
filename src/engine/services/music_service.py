@@ -4,6 +4,8 @@ La musica se reproduce en streaming con pygame.mixer.music (no se carga entera e
 memoria como los efectos). Cada escena declara su pista en scenes.json; si la pista
 pedida ya esta sonando no se reinicia, asi dos escenas seguidas pueden compartirla.
 """
+from __future__ import annotations
+
 import os
 
 import pygame

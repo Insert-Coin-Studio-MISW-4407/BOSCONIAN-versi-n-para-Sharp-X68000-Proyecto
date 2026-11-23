@@ -145,7 +145,8 @@ cruzar la costura del mundo. Cada capa tiene su factor de parallax.
 | `enemies.json` | explosiones, asteroides, minas, estaciones, naves, formaciones, espia, generador y alerta |
 | `player.json` | movimiento (`max_speed`, `acceleration`, `cruise_speed`), disparos (`fire`) y muerte (`death`) de la nave |
 | `window.json > layout.panel.hud` | tipografia y paleta de colores del panel/minimapa |
-| `level_XX.json` | incluye `starting_lives`, `round_number`, `alert_time_limit_seconds` y `high_score_path` |
+| `level_XX.json` | incluye `round_number`, `alert_time_limit_seconds` y `high_score_path` |
+| `game.json` | `starting_lives` y vidas extra por puntaje (`extra_life_first`, `extra_life_every`) |
 | `level_XX.json` | contenido de cada nivel, incluido el desbloqueo del cañon triple (`triple_cannon`) |
 | `level_XX.json` | `bases` (posiciones de las estaciones), `obstacles` (asteroides y minas) y `rounds` (paso de ronda) |
 

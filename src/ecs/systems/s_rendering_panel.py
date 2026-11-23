@@ -141,14 +141,16 @@ def system_rendering_panel(
 
     # Las vidas se representan con el sprite original de la nave, no con un contador.
     if ship_texture is not None:
-        visible_lives = min(max(0, lives), 3)
+        visible_lives = min(max(0, lives), 4)
         ship_width = ship_texture.get_width()
         ship_x = panel_rect.left + 5
         ship_y = top + 167
+        # Caben 4 naves en el ancho util del panel con una separacion de 2 px.
+        gap = 2
         for index in range(visible_lives):
             screen.blit(
                 ship_texture,
-                (ship_x + index * (ship_width + 5), ship_y),
+                (ship_x + index * (ship_width + gap), ship_y),
             )
 
     # Nivel: etiqueta a la izquierda y valor pegado al borde derecho.

@@ -1,11 +1,12 @@
 {
     "sprite": "player",
-    "max_speed": 90,
-    "acceleration": 180,
+    "max_speed": 110,
+    "acceleration": 260,
     "cruise_speed": 90,
+    "hitbox_scale": 0.6,
     "fire": {
         "bullet_speed": 240,
-        "max_bullets": 4,
+        "max_bullets": 6,
         "muzzle_offset": 10,
         "triple_spread": 20,
         "bullet_sprites": {
@@ -16,7 +17,7 @@
     },
     "death": {
         "respawn_delay": 2.0,
-        "invulnerable_time": 2.5,
+        "invulnerable_time": 4.0,
         "blink_interval": 0.1,
         "game_over_delay": 3.0
     }

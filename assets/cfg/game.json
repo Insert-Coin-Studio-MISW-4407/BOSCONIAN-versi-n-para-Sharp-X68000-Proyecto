@@ -1,3 +1,5 @@
 {
-    "starting_lives": 3
+    "starting_lives": 4,
+    "extra_life_first": 10000,
+    "extra_life_every": 20000
 }

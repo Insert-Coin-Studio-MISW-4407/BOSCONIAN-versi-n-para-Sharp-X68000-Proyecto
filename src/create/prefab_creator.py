@@ -430,11 +430,13 @@ def create_ui_image(world: esper.World, image_cfg: dict) -> int:
 
 # --------------------------------------------------------------- estado de partida
 def create_game_stats(world: esper.World, high_score: int, lives: int,
-                      round_number: int, high_score_path: str) -> int:
+                      round_number: int, high_score_path: str,
+                      extra_life_first: int = 0, extra_life_every: int = 0) -> int:
     """Crea el estado ECS que alimenta el puntaje, el record y las vidas."""
     entity = world.create_entity()
     world.add_component(
-        entity, CGameStats(high_score, lives, round_number, high_score_path))
+        entity, CGameStats(high_score, lives, round_number, high_score_path,
+                           extra_life_first, extra_life_every))
     return entity
 
 

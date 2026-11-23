@@ -36,7 +36,7 @@ def _save_high_score(score: int, path: str) -> None:
 
 def system_add_score(world: esper.World, points: int,
                      save_path: str | None = None) -> None:
-    """Suma puntos y persiste el record cuando se supera.
+    """Suma puntos, otorga vidas extra y persiste el record cuando se supera.
 
     La llama `destroy_enemy` (y el bonus de estaciones y formaciones) con los
     puntos de cada enemigo.
@@ -46,6 +46,12 @@ def system_add_score(world: esper.World, points: int,
         return
     for _, stats in world.get_component(CGameStats):
         stats.score += amount
+        while 0 < stats.next_extra_life <= stats.score:
+            stats.lives += 1
+            if stats.extra_life_every <= 0:
+                stats.next_extra_life = 0
+            else:
+                stats.next_extra_life += stats.extra_life_every
         if stats.score > stats.high_score:
             stats.high_score = stats.score
             _save_high_score(stats.high_score, save_path or stats.high_score_path

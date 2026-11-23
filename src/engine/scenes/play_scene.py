@@ -100,12 +100,15 @@ class PlayScene(Scene):
         # Estado no jugable: puntaje/record, vidas, alerta y limite temporal global.
         self._high_score_path = self._level_cfg.get(
             "high_score_path", "save/high_score.json")
+        game_cfg = getattr(engine, "game_cfg", {})
         self._game_stats_entity = create_game_stats(
             self.ecs_world,
             load_high_score(self._high_score_path),
-            getattr(engine, "game_cfg", {}).get("starting_lives", 3),
+            game_cfg.get("starting_lives", 3),
             self._level_cfg.get("round_number", 1),
             self._high_score_path,
+            game_cfg.get("extra_life_first", 0),
+            game_cfg.get("extra_life_every", 0),
         )
         self._c_stats = self.ecs_world.component_for_entity(self._game_stats_entity, CGameStats)
         create_stage_timer(
@@ -267,7 +270,8 @@ class PlayScene(Scene):
         blasts = system_blast(world, self._world_size, engine.sprites_cfg, engine.enemies_cfg)
         if self._player_entity is not None and system_player_hits(
                 world, self._player_entity, self._world_size, blasts,
-                engine.sprites_cfg, engine.enemies_cfg):
+                engine.sprites_cfg, engine.enemies_cfg,
+                engine.player_cfg.get("hitbox_scale", 1.0)):
             self._kill_player()
         system_bullet_offscreen(world, self._c_camera, self._world_size)
         system_stars(world, self._c_camera, delta_time)

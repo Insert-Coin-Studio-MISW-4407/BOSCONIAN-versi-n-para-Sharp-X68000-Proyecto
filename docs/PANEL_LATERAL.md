@@ -54,7 +54,9 @@ El record se carga desde `save/high_score.json` al entrar a la escena y se guard
 ## Configuracion
 
 - `assets/cfg/window.json > layout.panel.hud`: fuente, tamanos y paleta del panel.
-- `assets/cfg/level_01.json > starting_lives`: vidas iniciales.
+- `assets/cfg/game.json > starting_lives`: vidas iniciales (el panel dibuja hasta 4).
+- `assets/cfg/game.json > extra_life_first` / `extra_life_every`: puntaje de la primera vida
+  extra y cada cuantos puntos se gana otra (0 = desactivado).
 - `assets/cfg/level_01.json > round_number`: numero inicial del nivel mostrado.
 - `assets/cfg/level_01.json > alert_time_limit_seconds`: limite temporal global.
 - `assets/cfg/level_01.json > high_score_path`: ruta del record.

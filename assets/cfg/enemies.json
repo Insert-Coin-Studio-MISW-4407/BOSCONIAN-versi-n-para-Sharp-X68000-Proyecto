@@ -12,7 +12,7 @@
         "sprite": "mine",
         "frame_time": 0.3,
         "points": 20,
-        "blast_radius": 30
+        "blast_radius": 22
     },
     "base": {
         "frame": "base_frame",
@@ -24,62 +24,62 @@
         "core": "base_core",
         "core_radius": 10.5,
         "core_frame_time": 0.12,
-        "core_open_time": 1.2,
-        "core_closed_time": 2.5,
+        "core_open_time": 2.0,
+        "core_closed_time": 2.0,
         "cannon_points": 200,
         "base_points": 1500,
         "clearance_radius": 56,
         "fire": {
-            "range": 110,
+            "range": 95,
             "check_interval": 0.25,
-            "charge_time": 0.35,
+            "charge_time": 0.6,
             "fire_time": 0.2,
-            "cooldown": [1.6, 3.4]
+            "cooldown": [2.4, 4.2]
         }
     },
     "ships": {
-        "I": { "sprite": "enemy_i", "speed": 86, "turn_rate": 100, "points": 50 },
-        "P": { "sprite": "enemy_p", "speed": 98, "turn_rate": 120, "points": 60 },
-        "E": { "sprite": "enemy_e", "speed": 115, "turn_rate": 140, "points": 70 }
+        "I": { "sprite": "enemy_i", "speed": 70, "turn_rate": 70, "points": 50 },
+        "P": { "sprite": "enemy_p", "speed": 80, "turn_rate": 85, "points": 60 },
+        "E": { "sprite": "enemy_e", "speed": 95, "turn_rate": 100, "points": 70 }
     },
     "spawner": {
-        "first_delay": 4.0,
-        "interval": [3.0, 5.5],
-        "red_interval": [1.0, 2.2],
-        "max_alive": 6,
-        "spawn_distance": 150,
+        "first_delay": 6.0,
+        "interval": [4.5, 7.5],
+        "red_interval": [2.0, 3.5],
+        "max_alive": 4,
+        "spawn_distance": 200,
         "spawn_ahead_spread": 70,
         "despawn_distance": 420,
-        "types": ["I", "I", "I", "P", "P", "E"]
+        "types": ["I", "I", "I", "I", "P", "P", "E"]
     },
     "formation": {
         "leader": "P",
         "member": "I",
         "offsets": [[-14, 12], [14, 12], [-28, 24], [28, 24]],
-        "speed": 80,
-        "turn_rate": 55,
+        "speed": 65,
+        "turn_rate": 45,
         "leader_points": 100,
         "leader_bonus": 1000,
-        "chance": 0.15,
-        "red_chance": 0.4
+        "chance": 0.12,
+        "red_chance": 0.3
     },
     "spy": {
         "sprite": "enemy_spy",
         "speed": 95,
-        "flee_speed": 135,
+        "flee_speed": 105,
         "watch_radius": 80,
-        "report_time": 4.0,
+        "report_time": 6.0,
         "escape_distance": 240,
         "points": 800,
-        "first_delay": 20.0,
-        "interval": [30.0, 45.0]
+        "first_delay": 35.0,
+        "interval": [45.0, 60.0]
     },
     "alert": {
         "detect_radius": 140
     },
     "enemy_bullet": {
-        "speed": 110,
-        "lifetime": 1.6,
+        "speed": 90,
+        "lifetime": 1.4,
         "tint": [255, 110, 255],
         "bullet_sprites": {
             "vertical": "bullet_vertical",

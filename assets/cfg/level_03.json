@@ -3,7 +3,7 @@
     "player_spawn": { "x": 768, "y": 768 },
     "triple_cannon": true,
     "round_number": 3,
-    "alert_time_limit_seconds": 100,
+    "alert_time_limit_seconds": 150,
     "high_score_path": "save/high_score.json",
     "bases": [
         { "x": 180, "y": 760 },
@@ -16,13 +16,13 @@
     "rounds": {
         "clear_delay": 3.0,
         "banner_time": 2.0,
-        "interval_scale": 0.78,
-        "min_interval_scale": 0.4
+        "interval_scale": 0.88,
+        "min_interval_scale": 0.6
     },
     "obstacles": {
-        "asteroids": 65,
-        "mines": 24,
+        "asteroids": 50,
+        "mines": 16,
         "min_spacing": 28,
-        "player_safe_radius": 96
+        "player_safe_radius": 120
     }
 }

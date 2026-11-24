@@ -13,6 +13,37 @@ python main.py
 
 `esper/` viene incluido en el repo (version 2.5).
 
+## Publicar en itch.io
+
+El proyecto ya incluye el bucle asincrono y la configuracion necesaria para exportarlo
+a HTML con `pygbag 0.9.2`.
+
+### Probar en el navegador
+
+```powershell
+python -m pygbag --ume_block 1 --width 768 --height 624 --title "COSMONIAN" .
+```
+
+Tambien puedes ejecutar `serve_web.bat` desde Windows. Pygbag iniciara un servidor local
+en `http://localhost:8000`.
+
+### Crear el archivo para itch.io
+
+```powershell
+python -m pygbag --build --archive --ume_block 1 --width 768 --height 624 --app_name cosmonian --package com.insertcoinstudio.cosmonian --title "COSMONIAN" .
+```
+
+El archivo listo es `build/web.zip`. En itch.io:
+
+1. Crea o abre el proyecto y selecciona **HTML** como tipo de proyecto.
+2. Sube `build/web.zip`.
+3. Activa **This file will be played in the browser**.
+4. Establece el marco recomendado en `768 x 624` (factor exacto 3x sobre la resolucion 256 x 208).
+5. Activa **Embed options -> Enable fullscreen** si quieres mostrar el boton de pantalla completa.
+6. Guarda y publica la pagina.
+
+Desde Windows puedes crear el paquete directamente con `build_web.bat`.
+
 ## Controles
 
 | Accion | Tecla |

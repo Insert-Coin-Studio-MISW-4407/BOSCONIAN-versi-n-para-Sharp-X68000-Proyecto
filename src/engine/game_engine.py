@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sys
 
 import pygame
 
@@ -29,9 +30,12 @@ class GameEngine:
         ServiceLocator.sounds_service.set_default_volume(self.audio_cfg["sfx_volume"])
         pygame.display.set_caption(self.window_cfg["title"])
         # SCALED: la ventana se agranda pero el juego sigue dibujando a resolucion nativa
-        self.screen = pygame.display.set_mode(
-            (self.window_cfg["size"]["w"], self.window_cfg["size"]["h"]),
-            pygame.SCALED | pygame.RESIZABLE)
+        size = (self.window_cfg["size"]["w"], self.window_cfg["size"]["h"])
+        if sys.platform == "emscripten":
+            self.screen = pygame.display.set_mode(size)
+        else:
+            self.screen = pygame.display.set_mode(
+                size, pygame.SCALED | pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
         self.framerate = self.window_cfg["framerate"]
         self.bg_color = pygame.Color(self.window_cfg["bg_color"]["r"],
